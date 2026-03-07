@@ -54,7 +54,7 @@ const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
     }
     await supabase.auth.signOut()
     set({ user: null, profile: null, loading: false })
-    window.location.href = '/login'
+    window.location.href = '/giris-yap'
   },
 }))
 

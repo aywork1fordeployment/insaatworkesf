@@ -50,7 +50,7 @@ const { data: orderData, error: orderError } = await supabase
 
       clearCart()
       setSuccess(true)
-      setTimeout(() => navigate('/orders'), 2000)
+      setTimeout(() => navigate('/siparislerim'), 2000)
     } catch (err) {
       console.error('Sipariş hatası:', err)
       alert('Sipariş verilemedi: ' + err.message)

@@ -87,7 +87,7 @@ export default function Login() {
           <div className="mt-6 pt-5 border-t border-gray-100 text-center">
             <p className="text-sm text-gray-500">
               Hesabın yok mu?{' '}
-              <Link to="/register" className="text-blue-600 font-semibold hover:underline">Kayıt Ol</Link>
+              <Link to="/kayit-ol" className="text-blue-600 font-semibold hover:underline">Kayıt Ol</Link>
             </p>
           </div>
 

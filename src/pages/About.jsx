@@ -68,7 +68,7 @@ export default function About() {
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-10 text-center shadow-xl shadow-blue-200">
           <h2 className="font-bold text-white text-3xl mb-3">Bizimle İletişime Geçin</h2>
           <p className="text-blue-200 text-base mb-7">Sorularınız ve siparişleriniz için her zaman buradayız.</p>
-          <Link to="/contact"
+          <Link to="/iletisim"
             className="inline-flex items-center gap-2 bg-white hover:bg-blue-50 text-blue-700 px-7 py-3.5 rounded-xl font-bold text-sm transition shadow-md">
             İletişim Sayfası →
           </Link>

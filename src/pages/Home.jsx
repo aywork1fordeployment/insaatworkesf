@@ -90,7 +90,7 @@ function HeroSlider({ user, onScroll }) {
               <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </button>
             {!user && (
-              <Link to="/register"
+              <Link to="/kayit-ol"
                 className="flex items-center justify-center gap-2 border border-blue-400/30 hover:border-blue-400/60 bg-blue-500/10 hover:bg-blue-500/20 text-white px-6 py-3.5 rounded-xl font-semibold text-sm transition">
                 Ücretsiz Hesap Oluştur
               </Link>
@@ -302,7 +302,7 @@ useEffect(() => {
 
                 {/* İçerik */}
                 <div className="p-3 sm:p-4 flex flex-col flex-1">
-                  <h3 onClick={() => navigate(`/product/${product.id}`)}
+                  <h3 onClick={() => navigate(`/urun/${product.id}`)}
                     className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-2 leading-snug mb-1 hover:text-blue-600 transition cursor-pointer">
                     {product.name}
                   </h3>

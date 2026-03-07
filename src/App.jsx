@@ -22,7 +22,7 @@ import Contact from './pages/Contact'
 function PrivateRoute({ children }) {
   const { user, profile, loading } = useAuthStore()
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
-  if (!user) return <Navigate to="/login" />
+  if (!user) return <Navigate to="/giris-yap" />
   if (profile?.role === 'admin') return <Navigate to="/admin/dashboard" />
   return children
 }
@@ -36,7 +36,7 @@ function GuestRoute({ children }) {
 function AdminRoute({ children }) {
   const { user, profile, loading } = useAuthStore()
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
-  if (!user) return <Navigate to="/login" />
+  if (!user) return <Navigate to="/giris-yap" />
   if (profile?.role !== 'admin') return <Navigate to="/" />
   return children
 }

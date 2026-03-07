@@ -57,11 +57,11 @@ export default function Footer() {
           <div className="flex flex-col gap-1.5">
             {[
               { label: 'Ana Sayfa', to: '/' },
-              { label: 'Tüm Ürünler', to: '/#products' },
-              { label: 'Siparişlerim', to: '/orders' },
-              { label: 'Profilim', to: '/profile' },
-              { label: 'Hakkımızda', to: '/about' },
-              { label: 'İletişim', to: '/contact' },
+              { label: 'Tüm Ürünler', to: '/#tum-urunler' },
+              { label: 'Siparişlerim', to: '/siparislerim' },
+              { label: 'Profilim', to: '/profilim' },
+              { label: 'Hakkımızda', to: '/hakkimizda' },
+              { label: 'İletişim', to: '/iletisim' },
             ].map(({ label, to }) => (
               <Link key={to} to={to}
                 className="flex items-center gap-2 text-sm text-slate-500 hover:text-white transition py-1 group">

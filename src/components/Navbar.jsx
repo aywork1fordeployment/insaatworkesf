@@ -218,7 +218,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
               className="text-sm text-slate-500 hover:text-blue-700 px-3 py-2 rounded-xl hover:bg-slate-50 transition font-medium">
               Siparişlerim
             </Link>
-            <Link to={profile?.role === 'admin' ? '/admin/dashboard' : '/profile'}
+            <Link to={profile?.role === 'admin' ? '/admin/dashboard' : '/profilim'}
               className="flex items-center gap-2 text-sm text-slate-600 hover:text-blue-700 px-3 py-2 rounded-xl hover:bg-slate-50 transition font-medium">
               <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold ring-2 ring-blue-100">
                 {(profile?.full_name || 'K')[0].toUpperCase()}
@@ -226,7 +226,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
               <span>{profile?.role === 'admin' ? 'Admin Panel' : profile?.full_name?.split(' ')[0] || 'Profil'}</span>
             </Link>
             {profile?.role !== 'admin' && (
-              <Link to="/cart"
+              <Link to="/sepetim"
                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition shadow-md shadow-blue-200">
                 <ShoppingCart size={15} />
                 Sepet
@@ -259,7 +259,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
       {/* Mobil sağ */}
       <div className="flex md:hidden items-center gap-2">
         {user && profile?.role !== 'admin' && (
-          <Link to="/cart" className="relative flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-xl shadow-md shadow-blue-200">
+          <Link to="/sepetim" className="relative flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-xl shadow-md shadow-blue-200">
             <ShoppingCart size={17} />
             {count > 0 && (
               <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
@@ -303,11 +303,11 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
         {[
           { to: '/', label: 'Ana Sayfa' },
           ...(user ? [
-            { to: '/orders', label: 'Siparişlerim' },
-            { to: profile?.role === 'admin' ? '/admin/dashboard' : '/profile', label: profile?.role === 'admin' ? 'Admin Panel' : 'Profilim' },
+            { to: '/siparislerim', label: 'Siparişlerim' },
+            { to: profile?.role === 'admin' ? '/admin/dashboard' : '/profilim', label: profile?.role === 'admin' ? 'Admin Panel' : 'Profilim' },
           ] : []),
-          { to: '/about', label: 'Hakkımızda' },
-          { to: '/contact', label: 'İletişim' },
+          { to: '/hakkimizda', label: 'Hakkımızda' },
+          { to: '/iletisim', label: 'İletişim' },
         ].map(({ to, label }) => (
           <Link key={to} to={to}
             className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition mb-0.5 ${

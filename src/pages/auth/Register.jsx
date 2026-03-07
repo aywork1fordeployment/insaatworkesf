@@ -46,7 +46,7 @@ export default function Register() {
     })
 
     if (loginError) {
-      navigate('/login')
+      navigate('/giris-yap')
       return
     }
 
@@ -128,7 +128,7 @@ export default function Register() {
           <div className="mt-6 pt-5 border-t border-gray-100 text-center">
             <p className="text-sm text-gray-500">
               Zaten hesabın var mı?{' '}
-              <Link to="/login" className="text-blue-600 font-semibold hover:underline">Giriş Yap</Link>
+              <Link to="/giris-yap" className="text-blue-600 font-semibold hover:underline">Giriş Yap</Link>
             </p>
           </div>
 
