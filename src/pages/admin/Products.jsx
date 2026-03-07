@@ -31,12 +31,10 @@ function ConfirmModal({ name, onConfirm, onClose }) {
   )
 }
 
-// Toplu stok güncelleme modalı
 function BulkStockModal({ selected, products, onClose, onSave }) {
   const [amount, setAmount] = useState('')
-  const [mode, setMode] = useState('add') // add | set
+  const [mode, setMode] = useState('add')
   const [saving, setSaving] = useState(false)
-
   const selectedProducts = products.filter(p => selected.includes(p.id))
 
   const handleSave = async () => {
@@ -47,9 +45,7 @@ function BulkStockModal({ selected, products, onClose, onSave }) {
       await supabase.from('products').update({ stock: newStock }).eq('id', p.id)
       await writeProductLog('stok_guncellendi', `"${p.name}" stok: ${p.stock} → ${newStock}`)
     }
-    setSaving(false)
-    onSave()
-    onClose()
+    setSaving(false); onSave(); onClose()
   }
 
   return (
@@ -59,7 +55,6 @@ function BulkStockModal({ selected, products, onClose, onSave }) {
           <h3 className="font-bold text-gray-900">Toplu Stok Güncelle</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
-
         <div className="bg-blue-50 rounded-xl px-4 py-3 mb-4">
           <p className="text-xs text-blue-600 font-semibold mb-1">{selectedProducts.length} ürün seçili:</p>
           <div className="flex flex-wrap gap-1">
@@ -70,25 +65,18 @@ function BulkStockModal({ selected, products, onClose, onSave }) {
             ))}
           </div>
         </div>
-
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-4">
-          <button onClick={() => setMode('add')} className={`flex-1 py-2 rounded-md text-xs font-semibold transition ${mode === 'add' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}>
-            Stok Ekle / Çıkar
-          </button>
-          <button onClick={() => setMode('set')} className={`flex-1 py-2 rounded-md text-xs font-semibold transition ${mode === 'set' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}>
-            Sabit Değer
-          </button>
+          <button onClick={() => setMode('add')} className={`flex-1 py-2 rounded-md text-xs font-semibold transition ${mode === 'add' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}>Stok Ekle / Çıkar</button>
+          <button onClick={() => setMode('set')} className={`flex-1 py-2 rounded-md text-xs font-semibold transition ${mode === 'set' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}>Sabit Değer</button>
         </div>
-
         <div className="mb-5">
           <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">
-            {mode === 'add' ? 'Miktar (negatif değer için - kullan)' : 'Yeni Stok Değeri'}
+            {mode === 'add' ? 'Miktar (negatif için - kullan)' : 'Yeni Stok Değeri'}
           </label>
           <input type="number" value={amount} onChange={e => setAmount(e.target.value)}
             placeholder={mode === 'add' ? 'örn: 10 veya -5' : 'örn: 50'}
             className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
-
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">İptal</button>
           <button onClick={handleSave} disabled={saving || !amount}
@@ -111,21 +99,19 @@ function CategoryDropdown({ cats, activeCat, onChange }) {
   }, [])
   const options = ['Tümü', ...cats]
   return (
-    <div className="relative w-[180px]" ref={ref}>
+    <div className="relative flex-1 min-w-0" ref={ref}>
       <button onClick={() => setOpen(o => !o)}
-        className="flex items-center justify-between w-full h-11 px-
-        
-        bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-blue-400 hover:text-blue-600 transition">
-        <span className="truncate pr-2">{activeCat === 'Tümü' ? 'Tüm Kategoriler' : activeCat}</span>
-        <ChevronDown size={15} className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        className="flex items-center justify-between w-full h-10 px-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-blue-400 hover:text-blue-600 transition">
+        <span className="truncate pr-1 text-xs sm:text-sm">{activeCat === 'Tümü' ? 'Kategori' : activeCat}</span>
+        <ChevronDown size={14} className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] w-full min-w-[280px] bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 overflow-hidden">
+        <div className="absolute left-0 top-[calc(100%+6px)] w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 overflow-hidden">
           {options.map(cat => (
             <button key={cat} onClick={() => { onChange(cat); setOpen(false) }}
               className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition ${activeCat === cat ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>
               {cat === 'Tümü' ? 'Tüm Kategoriler' : cat}
-              {activeCat === cat && <Check size={14} className="text-blue-600" />}
+              {activeCat === cat && <Check size={13} className="text-blue-600" />}
             </button>
           ))}
         </div>
@@ -143,33 +129,33 @@ function SortDropdown({ sort, onChange }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
   const options = [
-    { value: 'newest',     label: 'En Yeni' },
-    { value: 'oldest',     label: 'En Eski' },
-    { value: 'price_asc',  label: 'Fiyat: Düşük → Yüksek' },
-    { value: 'price_desc', label: 'Fiyat: Yüksek → Düşük' },
-    { value: 'stock_asc',  label: 'Stok: Az → Çok' },
-    { value: 'stock_desc', label: 'Stok: Çok → Az' },
-    { value: 'name_asc',   label: 'İsim: A → Z' },
-    { value: 'name_desc',  label: 'İsim: Z → A' },
+    { value: 'newest', label: 'En Yeni' },
+    { value: 'oldest', label: 'En Eski' },
+    { value: 'price_asc', label: 'Fiyat ↑' },
+    { value: 'price_desc', label: 'Fiyat ↓' },
+    { value: 'stock_asc', label: 'Stok ↑' },
+    { value: 'stock_desc', label: 'Stok ↓' },
+    { value: 'name_asc', label: 'A → Z' },
+    { value: 'name_desc', label: 'Z → A' },
   ]
   const current = options.find(o => o.value === sort)
   return (
-    <div className="relative w-[160px]" ref={ref}>
+    <div className="relative flex-1 min-w-0" ref={ref}>
       <button onClick={() => setOpen(o => !o)}
-        className="flex items-center justify-between w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-blue-400 hover:text-blue-600 transition">
-        <div className="flex items-center gap-2 truncate">
-          <ArrowUpDown size={13} className="text-gray-400 flex-shrink-0" />
-          <span className="truncate">{current?.label || 'Sırala'}</span>
+        className="flex items-center justify-between w-full h-10 px-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-blue-400 hover:text-blue-600 transition">
+        <div className="flex items-center gap-1.5 truncate">
+          <ArrowUpDown size={12} className="text-gray-400 flex-shrink-0" />
+          <span className="truncate text-xs sm:text-sm">{current?.label || 'Sırala'}</span>
         </div>
-        <ChevronDown size={15} className={`text-gray-400 flex-shrink-0 ml-1 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={14} className={`text-gray-400 flex-shrink-0 ml-1 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] w-full min-w-[220px] bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 overflow-hidden">
+        <div className="absolute right-0 top-[calc(100%+6px)] w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 overflow-hidden">
           {options.map(opt => (
             <button key={opt.value} onClick={() => { onChange(opt.value); setOpen(false) }}
               className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition ${sort === opt.value ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>
               {opt.label}
-              {sort === opt.value && <Check size={14} className="text-blue-600" />}
+              {sort === opt.value && <Check size={13} className="text-blue-600" />}
             </button>
           ))}
         </div>
@@ -190,7 +176,7 @@ function ImageInput({ value, onChange }) {
     setUploading(false)
   }
   return (
-    <div className="col-span-2">
+    <div className="col-span-1 sm:col-span-2">
       <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Görsel</label>
       <div className="flex gap-2 mb-2">
         <button type="button" onClick={() => setMode('url')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${mode === 'url' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>URL ile</button>
@@ -202,11 +188,9 @@ function ImageInput({ value, onChange }) {
       ) : (
         <label className={`flex items-center justify-center gap-2 border-2 border-dashed rounded-xl px-3 py-4 cursor-pointer transition ${uploading ? 'border-blue-300 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'}`}>
           <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
-          {uploading ? (
-            <span className="text-sm text-blue-500 font-medium flex items-center gap-2"><span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />Yükleniyor...</span>
-          ) : (
-            <span className="text-sm text-gray-400 flex items-center gap-2"><Upload size={16} /> Görsel seç veya sürükle</span>
-          )}
+          {uploading
+            ? <span className="text-sm text-blue-500 font-medium flex items-center gap-2"><span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />Yükleniyor...</span>
+            : <span className="text-sm text-gray-400 flex items-center gap-2"><Upload size={16} /> Görsel seç veya sürükle</span>}
         </label>
       )}
       {value && (
@@ -233,7 +217,7 @@ export default function Products() {
   const [activeCat, setActiveCat] = useState('Tümü')
   const [sort, setSort] = useState('newest')
   const [showCriticalOnly, setShowCriticalOnly] = useState(false)
-  const [selected, setSelected] = useState([])      // toplu seçim
+  const [selected, setSelected] = useState([])
   const [showBulkStock, setShowBulkStock] = useState(false)
 
   const fetchProducts = async () => {
@@ -251,14 +235,14 @@ export default function Products() {
 
   const sortFn = (a, b) => {
     switch (sort) {
-      case 'oldest':     return new Date(a.created_at) - new Date(b.created_at)
-      case 'price_asc':  return a.price - b.price
+      case 'oldest': return new Date(a.created_at) - new Date(b.created_at)
+      case 'price_asc': return a.price - b.price
       case 'price_desc': return b.price - a.price
-      case 'stock_asc':  return a.stock - b.stock
+      case 'stock_asc': return a.stock - b.stock
       case 'stock_desc': return b.stock - a.stock
-      case 'name_asc':   return a.name.localeCompare(b.name, 'tr')
-      case 'name_desc':  return b.name.localeCompare(a.name, 'tr')
-      default:           return new Date(b.created_at) - new Date(a.created_at)
+      case 'name_asc': return a.name.localeCompare(b.name, 'tr')
+      case 'name_desc': return b.name.localeCompare(a.name, 'tr')
+      default: return new Date(b.created_at) - new Date(a.created_at)
     }
   }
 
@@ -276,9 +260,8 @@ export default function Products() {
     setAdding(true)
     try {
       const { data, error } = await supabase.from('products').insert({
-        name: form.name, price: parseFloat(form.price),
-        stock: parseInt(form.stock), description: form.description,
-        category: form.category, image_url: form.image_url || null
+        name: form.name, price: parseFloat(form.price), stock: parseInt(form.stock),
+        description: form.description, category: form.category, image_url: form.image_url || null
       }).select().single()
       if (error) throw error
       await supabase.from('order_logs').insert({ order_id: null, action: 'urun_eklendi', note: `"${data.name}" eklendi — ₺${data.price}, Stok: ${data.stock}` })
@@ -290,17 +273,15 @@ export default function Products() {
   const handleUpdate = async (id) => {
     const prev = products.find(p => p.id === id)
     await supabase.from('products').update({
-      name: editForm.name, price: parseFloat(editForm.price),
-      stock: parseInt(editForm.stock), description: editForm.description,
-      category: editForm.category, image_url: editForm.image_url || null
+      name: editForm.name, price: parseFloat(editForm.price), stock: parseInt(editForm.stock),
+      description: editForm.description, category: editForm.category, image_url: editForm.image_url || null
     }).eq('id', id)
     const changes = []
     if (prev.price != editForm.price) changes.push(`Fiyat: ₺${prev.price} → ₺${editForm.price}`)
     if (prev.stock != editForm.stock) changes.push(`Stok: ${prev.stock} → ${editForm.stock}`)
     if (prev.name != editForm.name) changes.push(`Ad: "${prev.name}" → "${editForm.name}"`)
     await writeProductLog('urun_guncellendi', `"${editForm.name}" güncellendi${changes.length ? ` — ${changes.join(', ')}` : ''}`)
-    setEditId(null)
-    await fetchProducts()
+    setEditId(null); await fetchProducts()
   }
 
   const handleDelete = async () => {
@@ -316,10 +297,7 @@ export default function Products() {
       name: `${p.name} (Kopya)`, price: p.price, stock: p.stock,
       description: p.description, category: p.category, image_url: p.image_url
     }).select().single()
-    if (!error) {
-      await writeProductLog('urun_kopyalandi', `"${p.name}" kopyalandı`)
-      await fetchProducts()
-    }
+    if (!error) { await writeProductLog('urun_kopyalandi', `"${p.name}" kopyalandı`); await fetchProducts() }
   }
 
   const startEdit = (p) => {
@@ -336,63 +314,63 @@ export default function Products() {
       {showBulkStock && <BulkStockModal selected={selected} products={products} onClose={() => setShowBulkStock(false)} onSave={() => { setSelected([]); fetchProducts() }} />}
 
       {/* Başlık */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-800">
           Ürünler <span className="text-gray-400 font-normal text-sm ml-1">({filtered.length})</span>
         </h2>
         <button onClick={() => { setShowForm(true); setForm(emptyForm) }}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-blue-700 transition font-semibold">
-          <Plus size={16} /> Ürün Ekle
+          className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-2 rounded-xl text-sm hover:bg-blue-700 transition font-semibold">
+          <Plus size={15} /> <span className="hidden sm:inline">Ürün Ekle</span><span className="sm:hidden">Ekle</span>
         </button>
       </div>
 
-      {/* Filtre toolbar */}
-      <div className="flex flex-wrap gap-3 mb-5">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"><X size={14} /></button>}
+      {/* Filtre — mobilde iki satır */}
+      <div className="flex flex-col gap-2 mb-4">
+        {/* Arama */}
+        <div className="relative w-full">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><X size={13} /></button>}
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Ürün adı veya açıklamasında ara..."
-            className="w-full h-11 pl-11 pr-10 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+            className="w-full h-10 pl-10 pr-9 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
         </div>
 
-        <CategoryDropdown cats={cats} activeCat={activeCat} onChange={setActiveCat} />
-        <SortDropdown sort={sort} onChange={setSort} />
-
-        {/* Kritik stok filtresi */}
-        <button onClick={() => setShowCriticalOnly(v => !v)}
-          className={`flex items-center gap-2 h-11 px-4 rounded-xl text-sm font-semibold border transition
-            ${showCriticalOnly
-              ? 'bg-red-500 text-white border-red-500 shadow-sm'
-              : 'bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-500'}`}>
-          <AlertCircle size={15} />
-          Kritik Stok
-          {criticalCount > 0 && (
-            <span className={`text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center ${showCriticalOnly ? 'bg-white text-red-500' : 'bg-red-500 text-white'}`}>
-              {criticalCount}
-            </span>
-          )}
-        </button>
+        {/* Kategori + Sıralama + Kritik */}
+        <div className="flex gap-2">
+          <CategoryDropdown cats={cats} activeCat={activeCat} onChange={setActiveCat} />
+          <SortDropdown sort={sort} onChange={setSort} />
+          <button onClick={() => setShowCriticalOnly(v => !v)}
+            className={`flex items-center gap-1.5 h-10 px-3 rounded-xl text-xs font-semibold border transition flex-shrink-0 ${
+              showCriticalOnly ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-500'
+            }`}>
+            <AlertCircle size={13} />
+            <span className="hidden sm:inline">Kritik Stok</span>
+            {criticalCount > 0 && (
+              <span className={`text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${showCriticalOnly ? 'bg-white text-red-500' : 'bg-red-500 text-white'}`}>
+                {criticalCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Toplu seçim toolbar */}
+      {/* Toplu seçim */}
       {selected.length > 0 && (
-        <div className="flex items-center gap-3 bg-blue-600 text-white px-5 py-3 rounded-xl mb-4 shadow-sm">
-          <span className="text-sm font-semibold flex-1">{selected.length} ürün seçili</span>
+        <div className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl mb-4">
+          <span className="text-sm font-semibold flex-1">{selected.length} seçili</span>
           <button onClick={() => setShowBulkStock(true)}
-            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-semibold transition">
-            <PackagePlus size={15} /> Stok Güncelle
+            className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+            <PackagePlus size={13} /> Stok Güncelle
           </button>
-          <button onClick={() => setSelected([])}
-            className="p-1.5 hover:bg-white/20 rounded-lg transition">
-            <X size={16} />
+          <button onClick={() => setSelected([])} className="p-1.5 hover:bg-white/20 rounded-lg transition">
+            <X size={15} />
           </button>
         </div>
       )}
 
-      {/* Ürün Ekleme Formu */}
+      {/* Ekleme Formu */}
       {showForm && (
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 grid grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[['name','Ürün Adı','text'],['price','Fiyat (₺)','number'],['stock','Stok Adedi','number'],['description','Açıklama','text']].map(([key, label, type]) => (
             <div key={key}>
               <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">{label}</label>
@@ -407,14 +385,14 @@ export default function Products() {
               {cats.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-          <div />
+          <div className="hidden sm:block" />
           <ImageInput key={showForm ? 'open' : 'closed'} value={form.image_url} onChange={url => setForm({...form, image_url: url})} />
-          <div className="col-span-2 flex gap-2">
+          <div className="col-span-1 sm:col-span-2 flex gap-2">
             <button onClick={handleAdd} disabled={adding}
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm hover:bg-blue-700 transition disabled:opacity-50 font-semibold">
+              className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm hover:bg-blue-700 transition disabled:opacity-50 font-semibold">
               {adding ? 'Ekleniyor...' : 'Kaydet'}
             </button>
-            <button onClick={() => setShowForm(false)} className="px-6 py-2.5 rounded-xl text-sm border border-gray-200 text-gray-500 hover:bg-gray-50 transition">İptal</button>
+            <button onClick={() => setShowForm(false)} className="px-5 py-2.5 rounded-xl text-sm border border-gray-200 text-gray-500 hover:bg-gray-50 transition">İptal</button>
           </div>
         </div>
       )}
@@ -422,12 +400,12 @@ export default function Products() {
       {/* Düzenleme Modalı */}
       {editId && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-gray-900">Ürünü Düzenle</h3>
               <button onClick={() => setEditId(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[['name','Ürün Adı','text'],['price','Fiyat (₺)','number'],['stock','Stok','number'],['description','Açıklama','text']].map(([key, label, type]) => (
                 <div key={key}>
                   <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">{label}</label>
@@ -442,11 +420,11 @@ export default function Products() {
                   {cats.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
-              <div />
+              <div className="hidden sm:block" />
               <ImageInput value={editForm.image_url} onChange={url => setEditForm({...editForm, image_url: url})} />
-              <div className="col-span-2 flex gap-2 mt-2">
-                <button onClick={() => handleUpdate(editId)} className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm hover:bg-blue-700 transition font-semibold">Güncelle</button>
-                <button onClick={() => setEditId(null)} className="px-6 py-2.5 rounded-xl text-sm border border-gray-200 text-gray-500 hover:bg-gray-50 transition">İptal</button>
+              <div className="col-span-1 sm:col-span-2 flex gap-2 mt-1">
+                <button onClick={() => handleUpdate(editId)} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm hover:bg-blue-700 transition font-semibold">Güncelle</button>
+                <button onClick={() => setEditId(null)} className="px-5 py-2.5 rounded-xl text-sm border border-gray-200 text-gray-500 hover:bg-gray-50 transition">İptal</button>
               </div>
             </div>
           </div>
@@ -455,76 +433,63 @@ export default function Products() {
 
       {/* Ürün Listesi */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Tümünü seç checkbox */}
             <input type="checkbox"
               checked={filtered.length > 0 && selected.length === filtered.length}
               onChange={toggleSelectAll}
               className="w-4 h-4 rounded accent-blue-600 cursor-pointer" />
-            <h3 className="font-bold text-gray-800">Ürün Listesi</h3>
+            <h3 className="font-bold text-gray-800 text-sm">Ürün Listesi</h3>
           </div>
           <span className="text-xs text-gray-400">
-            {filtered.length !== products.length ? `${filtered.length} / ${products.length} ürün` : `${products.length} ürün`}
+            {filtered.length !== products.length ? `${filtered.length}/${products.length}` : `${products.length} ürün`}
           </span>
         </div>
 
         <div className="divide-y divide-gray-50">
           {filtered.length === 0 ? (
             <div className="py-14 flex flex-col items-center gap-2 text-gray-400">
-              <Search size={30} className="text-gray-300" />
+              <Search size={28} className="text-gray-300" />
               <p className="text-sm font-medium text-gray-500">Sonuç bulunamadı</p>
-              <p className="text-xs">Arama veya kategori filtresini değiştirin</p>
             </div>
-          ) : (
-            filtered.map(p => {
-              const isSelected = selected.includes(p.id)
-              return (
-                <div key={p.id} className={`flex items-center gap-4 px-5 py-3.5 transition ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
-                  {/* Checkbox */}
-                  <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(p.id)}
-                    className="w-4 h-4 rounded accent-blue-600 cursor-pointer flex-shrink-0" />
+          ) : filtered.map(p => {
+            const isSelected = selected.includes(p.id)
+            return (
+              <div key={p.id} className={`flex items-center gap-3 px-4 py-3 transition ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
+                <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(p.id)}
+                  className="w-4 h-4 rounded accent-blue-600 cursor-pointer flex-shrink-0" />
 
-                  <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-blue-50 flex items-center justify-center">
-                    {p.image_url ? <img src={optimizeUrl(p.image_url, 80)} alt={p.name} className="w-full h-full object-cover" /> : <span className="text-xl">🪣</span>}
+                <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 bg-blue-50 flex items-center justify-center">
+                  {p.image_url ? <img src={optimizeUrl(p.image_url, 80)} alt={p.name} className="w-full h-full object-cover" /> : <span className="text-lg">🪣</span>}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="font-semibold text-gray-800 text-sm truncate max-w-[140px] sm:max-w-none">{p.name}</p>
+                    <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full flex-shrink-0 hidden sm:inline">{p.category || '—'}</span>
                   </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-gray-800 text-sm">{p.name}</p>
-                      <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{p.category || '—'}</span>
-                      {!p.image_url && (
-                        <span className="text-xs bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Image size={10} /> Görsel yok
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">{p.description || 'Açıklama yok'}</p>
-                  </div>
-
-                  <div className="flex items-center gap-6">
-                    <div className="text-right">
-                      <p className="font-bold text-blue-700">₺{Number(p.price).toFixed(2)}</p>
-                      <p className={`text-xs mt-0.5 ${p.stock <= 5 ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>
-                        {p.stock} adet {p.stock <= 5 && '⚠️'}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => startEdit(p)} title="Düzenle" className="text-blue-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition">
-                        <Pencil size={15} />
-                      </button>
-                      <button onClick={() => handleDuplicate(p)} title="Kopyala" className="text-gray-400 hover:text-indigo-600 p-1.5 hover:bg-indigo-50 rounded-lg transition">
-                        <Copy size={15} />
-                      </button>
-                      <button onClick={() => setDeleteTarget(p)} title="Sil" className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition">
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="font-bold text-blue-700 text-sm">₺{Number(p.price).toFixed(2)}</span>
+                    <span className={`text-xs flex-shrink-0 ${p.stock <= 5 ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>
+                      {p.stock} adet {p.stock <= 5 && '⚠️'}
+                    </span>
                   </div>
                 </div>
-              )
-            })
-          )}
+
+                <div className="flex items-center gap-0.5 flex-shrink-0">
+                  <button onClick={() => startEdit(p)} className="text-blue-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition">
+                    <Pencil size={14} />
+                  </button>
+                  <button onClick={() => handleDuplicate(p)} className="text-gray-400 hover:text-indigo-600 p-1.5 hover:bg-indigo-50 rounded-lg transition hidden sm:flex">
+                    <Copy size={14} />
+                  </button>
+                  <button onClick={() => setDeleteTarget(p)} className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

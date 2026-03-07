@@ -196,27 +196,39 @@ const matchSearch = !search ||
   <div>
     {selectedOrder && <ApproveModal order={selectedOrder} onClose={() => setSelectedOrder(null)} onSave={fetchOrders} />}
 
-    <div className="flex items-center justify-between mb-6">
+    {/* Başlık */}
+    <div className="flex items-center justify-between mb-4">
       <h2 className="text-xl font-bold text-gray-800">Siparişler</h2>
-      <div className="flex items-center gap-2 flex-wrap">
-        {Object.entries(STATUS_MAP).map(([k, v]) => (
-          <span key={k} className={`px-2.5 py-1 rounded-full text-xs font-semibold ${v.cls}`}>
-            {v.label} ({counts[k] || 0})
-          </span>
-        ))}
-      </div>
     </div>
 
-    <div className="flex items-center gap-3 mb-5">
-      <div className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2">
-        <Search size={14} className="text-gray-400" />
+    {/* Durum sayaçları */}
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
+      {Object.entries(STATUS_MAP).map(([k, v]) => (
+        <button key={k}
+          onClick={() => setStatusFilter(statusFilter === k ? 'all' : k)}
+          className={`flex items-center justify-between px-3 py-2.5 rounded-xl border transition text-xs font-semibold ${
+            statusFilter === k ? v.cls + ' border-current' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-200'
+          }`}>
+          <span>{v.label}</span>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] ${
+            statusFilter === k ? 'bg-white/60' : 'bg-gray-100'
+          }`}>{counts[k] || 0}</span>
+        </button>
+      ))}
+    </div>
+
+    {/* Arama */}
+    <div className="flex gap-2 mb-5">
+      <div className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2.5">
+        <Search size={14} className="text-gray-400 flex-shrink-0" />
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Ad, email veya sipariş no..."
-          className="flex-1 text-sm outline-none text-gray-700 placeholder-gray-400" />
+          className="flex-1 text-sm outline-none text-gray-700 placeholder-gray-400 min-w-0" />
+        {search && <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>}
       </div>
       <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-        className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option value="all">Tüm Durumlar</option>
+        className="border border-gray-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <option value="all">Tümü</option>
         {Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
       </select>
     </div>
@@ -233,52 +245,54 @@ const matchSearch = !search ||
             const tax = Number(order.tax_amount) || 0
             const final = Number(order.final_price) || base
             return (
-              <div key={order.id} className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-bold text-xs flex-shrink-0">
-                    #{order.id}
+              <div key={order.id} className="p-4 hover:bg-gray-50 transition">
+                {/* Üst satır: ID + durum + fiyat + buton */}
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 font-bold text-[11px] flex-shrink-0">
+                      #{order.id}
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800 truncate">{order.full_name || '—'}</p>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0 ${s.cls}`}>{s.label}</span>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-sm font-semibold text-gray-800">{order.full_name || '—'}</p>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-400 mb-0.5">
-                      {order.email && (
-                        <a href={`mailto:${order.email}`} className="hover:text-blue-600 transition">
-                          ✉ {order.email}
-                        </a>
-                      )}
-                      {order.phone_number && (
-                        <a href={`tel:${order.phone_number}`} className="hover:text-blue-600 transition">
-                          📞 {order.phone_number}
-                        </a>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-400">
-                      {new Date(order.created_at).toLocaleString('tr-TR')}
-                     {order.customer_note && (
-  <p className="text-xs text-slate-600 font-medium mt-0.5">{order.customer_note.slice(0, 60)}</p>
-)}
-                    </p>
-                    {(discount > 0 || tax > 0) && (
-                      <div className="flex items-center gap-3 mt-1 text-[11px]">
-                        {discount > 0 && <span className="text-green-600">-₺{discount.toFixed(2)} iskonto</span>}
-                        {tax > 0 && <span className="text-gray-400">+₺{tax.toFixed(2)} KDV</span>}
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <p className="font-bold text-blue-700 text-sm">₺{final.toFixed(2)}</p>
+                    <button onClick={() => setSelectedOrder(order)}
+                      className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap">
+                      Düzenle
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    {discount > 0 && <p className="text-xs text-gray-400 line-through">₺{base.toFixed(2)}</p>}
-                    <p className="font-bold text-blue-700">₺{final.toFixed(2)}</p>
-                  </div>
-                  <button onClick={() => setSelectedOrder(order)}
-                    className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl text-xs font-semibold transition">
-                    Düzenle
-                  </button>
+
+                {/* Alt satır: iletişim + tarih */}
+                <div className="pl-10 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  {order.email && (
+                    <a href={`mailto:${order.email}`} className="text-xs text-gray-400 hover:text-blue-600 transition truncate max-w-[200px]">
+                      ✉ {order.email}
+                    </a>
+                  )}
+                  {order.phone_number && (
+                    <a href={`tel:${order.phone_number}`} className="text-xs text-gray-400 hover:text-blue-600 transition flex-shrink-0">
+                      📞 {order.phone_number}
+                    </a>
+                  )}
+                  <span className="text-xs text-gray-300 flex-shrink-0">
+                    {new Date(order.created_at).toLocaleString('tr-TR')}
+                  </span>
                 </div>
+
+                {/* Ürün notu */}
+                {order.customer_note && (
+                  <p className="pl-10 text-xs text-slate-500 mt-1 truncate">{order.customer_note.slice(0, 60)}</p>
+                )}
+
+                {/* İskonto/KDV */}
+                {(discount > 0 || tax > 0) && (
+                  <div className="pl-10 flex items-center gap-3 mt-1 text-[11px]">
+                    {discount > 0 && <span className="text-green-600">-₺{discount.toFixed(2)} iskonto</span>}
+                    {tax > 0 && <span className="text-gray-400">+₺{tax.toFixed(2)} KDV</span>}
+                  </div>
+                )}
               </div>
             )
           })}

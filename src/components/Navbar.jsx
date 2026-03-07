@@ -131,6 +131,11 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
         </div>
       </Link>
 
+      {/* Mobil orta — başlık */}
+<div className="flex md:hidden flex-1 justify-center">
+  <span className="text-blue-950 font-black text-[35px] tracking-tight">ESF Yapı & İnşaat</span>
+</div>
+
       {/* Desktop Nav */}
       <div className="hidden md:flex items-center gap-0.5 flex-1 ml-2">
         <Link to="/"

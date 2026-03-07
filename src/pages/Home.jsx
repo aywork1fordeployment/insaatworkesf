@@ -5,7 +5,7 @@ import { optimizeUrl } from '../lib/cloudinary'
 import useCartStore from '../store/cartStore'
 import useAuthStore from '../store/authStore'
 import Navbar from '../components/Navbar'
-import { ShoppingCart, Search, Package, Shield, Truck, ChevronRight, ChevronLeft, Zap, ArrowRight, Star } from 'lucide-react'
+import { ShoppingCart, Search, Package, Shield, Truck, ChevronRight, ChevronLeft, Zap, ArrowRight } from 'lucide-react'
 
 const SLIDES = [
   {
@@ -30,58 +30,58 @@ const SLIDES = [
 
 function HeroSlider({ user, onScroll }) {
   const [current, setCurrent] = useState(0)
-  const [dir, setDir] = useState(1)
   const timerRef = useRef()
-  const navigate = useNavigate()
 
-  const go = (idx, d = 1) => { setDir(d); setCurrent(idx) }
-  const next = () => go((current + 1) % SLIDES.length, 1)
-  const prev = () => go((current - 1 + SLIDES.length) % SLIDES.length, -1)
+  const startTimer = () => {
+    clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setCurrent(c => (c + 1) % SLIDES.length)
+    }, 6000)
+  }
 
   useEffect(() => {
-    timerRef.current = setInterval(next, 6000)
+    startTimer()
     return () => clearInterval(timerRef.current)
-  }, [current])
+  }, [])
+
+  const next = () => { setCurrent(c => (c + 1) % SLIDES.length); startTimer() }
+  const prev = () => { setCurrent(c => (c - 1 + SLIDES.length) % SLIDES.length); startTimer() }
+  const go = (idx) => { setCurrent(idx); startTimer() }
 
   const slide = SLIDES[current]
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900"
-      style={{ minHeight: '520px' }}>
+    <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900" style={{ minHeight: '520px' }}>
 
-      {/* Arka plan efektleri */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Arka plan — pointer-events-none zorunlu */}
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-32 -left-32 w-[400px] h-[400px] bg-sky-400/8 rounded-full blur-3xl" />
         <div className="absolute inset-0 opacity-[0.04]"
           style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
       </div>
 
-      {/* Sol dekoratif çizgi */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-blue-400/40 to-transparent hidden lg:block" />
+      {/* Sol dekoratif çizgi — pointer-events-none */}
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-blue-400/40 to-transparent hidden lg:block pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 py-16 md:py-24 relative z-10">
+      {/* İçerik */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-24 pb-24">
         <div className="max-w-2xl">
-
-          {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[11px] font-bold px-3 py-1.5 rounded-full mb-5 uppercase tracking-widest">
             <Zap size={10} className="text-blue-300" />
             {slide.badge}
           </div>
 
-          {/* Başlık */}
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight mb-5">
             <span className="text-white">{slide.title}</span>
             <br />
             <span className="text-blue-400">{slide.highlight}</span>
           </h1>
 
-          {/* Açıklama */}
           <p className="text-blue-200/70 text-sm sm:text-base mb-8 leading-relaxed max-w-lg">
             {slide.desc}
           </p>
 
-          {/* CTA */}
           <div className="flex flex-col sm:flex-row gap-3 mb-12">
             <button onClick={onScroll}
               className="flex items-center justify-center gap-2 bg-white hover:bg-blue-50 text-blue-700 px-6 py-3.5 rounded-xl font-bold text-sm transition shadow-xl shadow-black/20 group">
@@ -97,7 +97,6 @@ function HeroSlider({ user, onScroll }) {
             )}
           </div>
 
-          {/* İkon sıra */}
           <div className="flex flex-wrap gap-5">
             {[
               { icon: Shield, text: 'Orijinal Permolit' },
@@ -115,21 +114,21 @@ function HeroSlider({ user, onScroll }) {
         </div>
       </div>
 
-      {/* Slider kontrolleri — mobil dostu */}
-      <div className="absolute bottom-6 left-0 right-0 flex items-center justify-center gap-4">
+      {/* Slider kontrolleri — z-20, içerik z-10'un üstünde */}
+      <div className="absolute bottom-6 left-0 right-0 z-20 flex items-center justify-center gap-4">
         <button onClick={prev}
-          className="w-8 h-8 bg-white/10 hover:bg-white/20 border border-white/15 rounded-lg flex items-center justify-center text-white/70 hover:text-white transition">
-          <ChevronLeft size={15} />
+          className="w-9 h-9 bg-white/10 hover:bg-white/25 border border-white/20 rounded-xl flex items-center justify-center text-white transition">
+          <ChevronLeft size={16} />
         </button>
         <div className="flex items-center gap-2">
           {SLIDES.map((_, i) => (
             <button key={i} onClick={() => go(i)}
-              className={`rounded-full transition-all duration-300 ${i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/30 hover:bg-white/50'}`} />
+              className={`rounded-full transition-all duration-300 ${i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/30 hover:bg-white/60'}`} />
           ))}
         </div>
         <button onClick={next}
-          className="w-8 h-8 bg-white/10 hover:bg-white/20 border border-white/15 rounded-lg flex items-center justify-center text-white/70 hover:text-white transition">
-          <ChevronRight size={15} />
+          className="w-9 h-9 bg-white/10 hover:bg-white/25 border border-white/20 rounded-xl flex items-center justify-center text-white transition">
+          <ChevronRight size={16} />
         </button>
       </div>
     </section>
@@ -146,23 +145,18 @@ export default function Home() {
   const { user } = useAuthStore()
   const navigate = useNavigate()
 
-useEffect(() => {
-  const fetchProducts = async () => {
-    const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false })
-    setProducts(data || [])
-    setLoading(false)
-  }
-
-  fetchProducts()
-
-  const channel = supabase.channel('products-home')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
-      fetchProducts()
-    })
-    .subscribe()
-
-  return () => supabase.removeChannel(channel)
-}, [])
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false })
+      setProducts(data || [])
+      setLoading(false)
+    }
+    fetchProducts()
+    const channel = supabase.channel('products-home')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => fetchProducts())
+      .subscribe()
+    return () => supabase.removeChannel(channel)
+  }, [])
 
   const handleAdd = (product) => {
     if (!user) { navigate('/giris-yap'); return }
@@ -179,7 +173,6 @@ useEffect(() => {
     return matchSearch && matchCat
   })
 
-  // Ürün kartı renkleri (görsel yoksa)
   const CARD_BG = [
     'from-blue-600 to-blue-800',
     'from-sky-600 to-sky-800',
@@ -203,8 +196,7 @@ useEffect(() => {
               placeholder="Ürün ara... permomax, astar, sprey..."
               className="flex-1 py-3.5 text-sm outline-none bg-transparent text-slate-700 placeholder-slate-400" />
             {search && (
-              <button onClick={() => setSearch('')}
-                className="text-slate-400 hover:text-slate-600 text-xs font-medium transition px-1">
+              <button onClick={() => setSearch('')} className="text-slate-400 hover:text-slate-600 text-xs font-medium transition px-1">
                 Temizle ×
               </button>
             )}
@@ -212,12 +204,8 @@ useEffect(() => {
         </div>
       </div>
 
-  
-
       {/* Ürünler */}
       <div id="products" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10">
-
-        {/* Başlık */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-slate-900">
@@ -233,7 +221,6 @@ useEffect(() => {
           )}
         </div>
 
-        {/* Grid */}
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {[...Array(8)].map((_, i) => (
@@ -265,7 +252,6 @@ useEffect(() => {
               <div key={product.id}
                 className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100/40 transition-all duration-300 group flex flex-col">
 
-                {/* Görsel */}
                 <div onClick={() => navigate(`/urun/${product.id}`)}
                   className="relative overflow-hidden cursor-pointer flex-shrink-0"
                   style={{ height: '160px' }}>
@@ -281,8 +267,6 @@ useEffect(() => {
                       <span className="text-4xl sm:text-5xl drop-shadow-lg relative z-10">🪣</span>
                     </div>
                   )}
-
-                  {/* Üst etiketler */}
                   {product.category && (
                     <span className="absolute top-2 left-2 bg-black/25 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
                       {product.category}
@@ -300,7 +284,6 @@ useEffect(() => {
                   )}
                 </div>
 
-                {/* İçerik */}
                 <div className="p-3 sm:p-4 flex flex-col flex-1">
                   <h3 onClick={() => navigate(`/urun/${product.id}`)}
                     className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-2 leading-snug mb-1 hover:text-blue-600 transition cursor-pointer">
@@ -309,24 +292,19 @@ useEffect(() => {
                   {product.description && (
                     <p className="text-[11px] sm:text-xs text-slate-400 line-clamp-1 mb-2">{product.description}</p>
                   )}
-
                   <div className="flex items-center justify-between mt-auto pt-2.5 border-t border-slate-50">
                     <span className="text-base sm:text-lg font-black text-blue-700">
                       ₺{Number(product.price).toFixed(2)}
                     </span>
                     <button onClick={() => handleAdd(product)} disabled={product.stock === 0}
                       className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all
-                        ${added[product.id]
-                          ? 'bg-green-500 text-white'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200'}
+                        ${added[product.id] ? 'bg-green-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200'}
                         disabled:opacity-30 disabled:cursor-not-allowed`}>
                       <ShoppingCart size={11} />
                       <span className="hidden sm:inline">
                         {!user ? 'Giriş Yap' : added[product.id] ? 'Eklendi!' : 'Ekle'}
                       </span>
-                      <span className="sm:hidden">
-                        {added[product.id] ? '✓' : '+'}
-                      </span>
+                      <span className="sm:hidden">{added[product.id] ? '✓' : '+'}</span>
                     </button>
                   </div>
                 </div>
@@ -335,9 +313,6 @@ useEffect(() => {
           </div>
         )}
       </div>
-
-
-
     </div>
   )
 }
