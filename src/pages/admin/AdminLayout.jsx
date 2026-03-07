@@ -17,7 +17,7 @@ const handleLogout = () => {
   Object.keys(localStorage).forEach(key => {
     if (key.startsWith('sb-')) localStorage.removeItem(key)
   })
-  window.location.href = '/giris-yap'
+  window.location.href = '/'
 }
 
 export default function AdminLayout() {

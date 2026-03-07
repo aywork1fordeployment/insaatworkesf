@@ -44,7 +44,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith('sb-')) localStorage.removeItem(key)
     })
-    window.location.href = '/giris-yap'
+    window.location.href = '/'
   }
 
   const handleCategorySelect = (cat) => {
