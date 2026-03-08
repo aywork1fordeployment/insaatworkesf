@@ -33,17 +33,17 @@ export default function Contact() {
               title: 'Adres',
               lines: ['Erzurum, Türkiye'],
               color: 'bg-blue-600',
-              href: 'https://www.google.com/maps/dir/39.9133958,41.1901572/Çifte+Minareli+Medrese,+Rabia+Ana,+Cumhuriyet+Cd.+No:3,+25030+Yakutiye',
+              href: 'https://www.google.com/maps/dir/39.9133681,41.1900991/ESF+YAPI+VE+%C4%B0N%C5%9EAAT+MALZEMELER%C4%B0,+Il%C4%B1ca,+hoca+ahmet+yesevi+mahallesi+:no19%2FB,+25700+Aziziye%2FErzurum/@39.9309831,41.1267568,14z',
               cta: 'Yol Tarifi Al'
             },
-            {
-              icon: Phone,
-              title: 'Telefon',
-              lines: ['Bilgi için iletişime geçin'],
-              color: 'bg-green-600',
-              href: 'tel:+90',
-              cta: 'Ara'
-            },
+           {
+  icon: Phone,
+  title: 'WhatsApp',
+  lines: ['Hızlı iletişim için WhatsApp\'tan yazın'],
+  color: 'bg-green-500',
+  href: 'https://wa.me/905323581792',
+  cta: 'WhatsApp\'tan Yaz'
+},
             {
               icon: Mail,
               title: 'E-posta',
@@ -83,33 +83,34 @@ export default function Contact() {
         </div>
 
         {/* Harita */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-10">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <MapPin size={16} className="text-white" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-900 text-sm">Çifte Minareli Medrese</p>
-              <p className="text-slate-400 text-xs">Cumhuriyet Cd. No:3, 25030 Yakutiye / Erzurum</p>
-            </div>
-            <a href="https://www.google.com/maps/dir/39.9133958,41.1901572/Çifte+Minareli+Medrese,+Rabia+Ana,+Cumhuriyet+Cd.+No:3,+25030+Yakutiye"
-              target="_blank" rel="noopener noreferrer"
-              className="ml-auto text-xs text-blue-600 font-semibold bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition flex-shrink-0">
-              Yol Tarifi →
-            </a>
-          </div>
-          <div style={{ height: '380px' }}>
-            <iframe
-              src="https://maps.google.com/maps?q=Çifte+Minareli+Medrese,+Erzurum&z=16&output=embed"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              loading="lazy"
-              title="Çifte Minareli Medrese"
-              allowFullScreen
-            />
-          </div>
-        </div>
+      {/* Harita */}
+<div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-10">
+  <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+    <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+      <MapPin size={16} className="text-white" />
+    </div>
+    <div>
+      <p className="font-bold text-slate-900 text-sm">ESF Yapı ve İnşaat Malzemeleri</p>
+      <p className="text-slate-400 text-xs">Hoca Ahmet Yesevi Mah. No:19/B, 25700 Aziziye / Erzurum</p>
+    </div>
+    <a href="https://www.google.com/maps/dir/39.9133681,41.1900991/ESF+YAPI+VE+%C4%B0N%C5%9EAAT+MALZEMELER%C4%B0,+Il%C4%B1ca,+hoca+ahmet+yesevi+mahallesi+:no19%2FB,+25700+Aziziye%2FErzurum/@39.9309831,41.1267568,14z"
+      target="_blank" rel="noopener noreferrer"
+      className="ml-auto text-xs text-blue-600 font-semibold bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition flex-shrink-0">
+      Yol Tarifi →
+    </a>
+  </div>
+  <div style={{ height: '380px' }}>
+    <iframe
+      src="https://maps.google.com/maps?q=39.9485217,41.1041799&z=16&output=embed"
+      width="100%"
+      height="100%"
+      style={{ border: 0 }}
+      loading="lazy"
+      title="ESF Yapı ve İnşaat"
+      allowFullScreen
+    />
+  </div>
+</div>
 
         {/* Permolit linki */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-10 text-center shadow-xl shadow-blue-200">
