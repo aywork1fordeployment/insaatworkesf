@@ -10,7 +10,7 @@ const STATUS_MAP = {
 }
 
 function ApproveModal({ order, onClose, onSave }) {
-  const [discount, setDiscount] = useState(order.discount_amount || 0)
+  const [discountRate, setDiscountRate] = useState(order.discount_rate || 0)
   const [taxRate, setTaxRate] = useState(order.tax_rate || 20)
   const [adminNote, setAdminNote] = useState(order.admin_note || '')
   const [status, setStatus] = useState(order.status)
@@ -21,7 +21,7 @@ function ApproveModal({ order, onClose, onSave }) {
   const [customFinalPrice, setCustomFinalPrice] = useState('')
 
   const base = Number(order.total_price) || 0
-  const discountAmt = Number(discount) || 0
+  const discountAmt = base * (Number(discountRate) || 0) / 100
   const afterDiscount = base - discountAmt
 
   // KDV artık fiyata DAHİL — ayrıca eklenmez, sadece bilgi amaçlı gösterilir
@@ -40,6 +40,7 @@ function ApproveModal({ order, onClose, onSave }) {
 
     await supabase.from('orders').update({
       status,
+      discount_rate: useCustomPrice ? 0 : Number(discountRate),
       discount_amount: useCustomPrice ? 0 : discountAmt,
       tax_rate: taxRate,
       tax_amount: afterDiscount * taxRate / (100 + taxRate),
@@ -63,14 +64,14 @@ function ApproveModal({ order, onClose, onSave }) {
 
     const logNote = useCustomPrice
       ? `Durum: ${STATUS_MAP[status]?.label} | Özel fiyat: ₺${finalPrice.toFixed(2)}${restoreStock && status === 'cancelled' ? ' | Stok iade edildi' : ''}${adminNote ? ` | Not: ${adminNote}` : ''}`
-      : `Durum: ${STATUS_MAP[status]?.label}${discountAmt > 0 ? ` | İskonto: ₺${discountAmt}` : ''}${restoreStock && status === 'cancelled' ? ' | Stok iade edildi' : ''} | Toplam: ₺${finalPrice.toFixed(2)}${adminNote ? ` | Not: ${adminNote}` : ''}`
+      : `Durum: ${STATUS_MAP[status]?.label}${Number(discountRate) > 0 ? ` | İskonto: %${discountRate} (₺${discountAmt.toFixed(2)})` : ''}${restoreStock && status === 'cancelled' ? ' | Stok iade edildi' : ''} | Toplam: ₺${finalPrice.toFixed(2)}${adminNote ? ` | Not: ${adminNote}` : ''}`
 
     await supabase.from('order_logs').insert({
       order_id: order.id,
       action: status === 'completed' ? 'siparis_tamamlandi' :
               status === 'cancelled' ? 'siparis_iptal' :
               useCustomPrice ? 'ozel_fiyat_uygulandi' :
-              discountAmt > 0 ? 'iskonto_eklendi' : 'durum_guncellendi',
+              Number(discountRate) > 0 ? 'iskonto_eklendi' : 'durum_guncellendi',
       note: logNote,
     })
 
@@ -158,18 +159,29 @@ function ApproveModal({ order, onClose, onSave }) {
               <span>₺{base.toFixed(2)}</span>
             </div>
 
-            {/* Müşteriye özel iskonto — özel fiyat aktif değilse */}
+            {/* Yüzde bazlı iskonto — özel fiyat aktif değilse */}
             {!useCustomPrice && (
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-gray-600">Müşteri İndirimi (₺)</span>
+                  <span className="text-gray-600">Müşteri İndirimi (%)</span>
                   <p className="text-[10px] text-gray-400">Belirli müşteriye özel indirim</p>
                 </div>
-                <input
-                  type="number" min="0" max={base} value={discount}
-                  onChange={e => setDiscount(e.target.value)}
-                  className="w-24 border border-gray-200 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number" min="0" max="100" value={discountRate}
+                    onChange={e => setDiscountRate(e.target.value)}
+                    className="w-20 border border-gray-200 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-xs text-gray-400">%</span>
+                </div>
+              </div>
+            )}
+
+            {/* İskonto tutarı bilgi satırı */}
+            {!useCustomPrice && Number(discountRate) > 0 && (
+              <div className="flex justify-between text-green-600 text-xs bg-green-50 rounded-lg px-3 py-1.5">
+                <span>İndirim Tutarı (%{discountRate})</span>
+                <span>-₺{discountAmt.toFixed(2)}</span>
               </div>
             )}
 
@@ -349,6 +361,7 @@ export default function Orders() {
               const base = Number(order.total_price) || 0
               const discount = Number(order.discount_amount) || 0
               const tax = Number(order.tax_amount) || 0
+              const discountRate = Number(order.discount_rate) || 0
               const final = Number(order.final_price) || base
               return (
                 <div key={order.id} className="p-4 hover:bg-gray-50 transition">
@@ -394,7 +407,11 @@ export default function Orders() {
                   {/* İskonto / KDV bilgisi */}
                   {(discount > 0 || tax > 0) && (
                     <div className="pl-10 flex items-center gap-3 mt-1 text-[11px]">
-                      {discount > 0 && <span className="text-green-600">-₺{discount.toFixed(2)} indirim</span>}
+                      {discount > 0 && (
+                        <span className="text-green-600">
+                          {discountRate > 0 ? `%${discountRate} ` : ''}-₺{discount.toFixed(2)} indirim
+                        </span>
+                      )}
                       {tax > 0 && <span className="text-gray-400">KDV: ₺{tax.toFixed(2)} (dahil)</span>}
                     </div>
                   )}

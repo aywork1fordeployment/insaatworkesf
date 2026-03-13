@@ -52,8 +52,7 @@ function DiscountSlide({ slide, product, discount, onScroll }) {
               <div
                 onClick={() => navigate(`/urun/${product.id}`)}
                 className="relative cursor-pointer flex items-center justify-center"
-                style={{ width: '150px', height: '150px' }}>
-                {/* glow */}
+style={{ width: '230px', height: '230px' }}>                {/* glow */}
                 <div className="absolute inset-0 rounded-full pointer-events-none"
                   style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.35) 0%, transparent 70%)' }} />
                 {product.image_url ? (
@@ -218,7 +217,7 @@ function DiscountSlide({ slide, product, discount, onScroll }) {
                   <img
                     src={optimizeUrl(product.image_url, 700)}
                     alt={product.name}
-                    className="relative z-10 w-3/4 h-3/4 object-contain transition-transform duration-500 group-hover:scale-105"
+className="relative z-10 w-[95%] h-[95%] object-contain transition-transform duration-500 group-hover:scale-105"
                     style={{
                       filter: 'drop-shadow(0 0 48px rgba(59,130,246,0.65)) drop-shadow(0 24px 64px rgba(0,0,50,0.95))',
                     }}
