@@ -7,64 +7,57 @@ import useAuthStore from '../store/authStore'
 import Navbar from '../components/Navbar'
 import { ShoppingCart, Search, Package, Shield, Truck, ChevronRight, ChevronLeft, Zap, ArrowRight } from 'lucide-react'
 
-const SLIDES = [
-  {
-    title: 'Permolit Boya',
-    highlight: 'Doğu Anadolu Bayii',
-    desc: 'İç cephe, dış cephe, tavan ve özel boya sistemlerinde Erzurum\'un güvenilir adresi.',
-    badge: 'Orijinal & Güvenilir',
-  },
-  {
-    title: 'Permomax & Premium',
-    highlight: 'Seri Ürünler',
-    desc: 'Yüksek örtücülük, uzun ömür ve profesyonel sonuçlar için tasarlanmış ürün serisi.',
-    badge: 'Üstün Kalite',
-  },
-  {
-    title: 'Teknik Destek &',
-    highlight: 'Danışmanlık',
-    desc: 'Proje bazlı ürün seçimi, uygulama rehberliği ve satış sonrası destek hizmeti.',
-    badge: 'Uzman Ekip',
-  },
-]
-
 function HeroSlider({ user, onScroll }) {
+  const [slides, setSlides] = useState([])
   const [current, setCurrent] = useState(0)
   const timerRef = useRef()
+
+  useEffect(() => {
+    supabase
+      .from('slides')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order')
+      .then(({ data }) => setSlides(data || []))
+  }, [])
 
   const startTimer = () => {
     clearInterval(timerRef.current)
     timerRef.current = setInterval(() => {
-      setCurrent(c => (c + 1) % SLIDES.length)
+      setCurrent(c => (c + 1) % slides.length)
     }, 6000)
   }
 
   useEffect(() => {
+    if (slides.length === 0) return
     startTimer()
     return () => clearInterval(timerRef.current)
-  }, [])
+  }, [slides])
 
-  const next = () => { setCurrent(c => (c + 1) % SLIDES.length); startTimer() }
-  const prev = () => { setCurrent(c => (c - 1 + SLIDES.length) % SLIDES.length); startTimer() }
+  const next = () => { setCurrent(c => (c + 1) % slides.length); startTimer() }
+  const prev = () => { setCurrent(c => (c - 1 + slides.length) % slides.length); startTimer() }
   const go = (idx) => { setCurrent(idx); startTimer() }
 
-  const slide = SLIDES[current]
+  if (slides.length === 0) return (
+    <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900" style={{ minHeight: '520px' }}>
+      <div className="flex items-center justify-center h-full min-h-[520px]">
+        <div className="w-8 h-8 border-4 border-blue-400/40 border-t-blue-300 rounded-full animate-spin" />
+      </div>
+    </section>
+  )
+
+  const slide = slides[current]
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900" style={{ minHeight: '520px' }}>
-
-      {/* Arka plan — pointer-events-none zorunlu */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-32 -left-32 w-[400px] h-[400px] bg-sky-400/8 rounded-full blur-3xl" />
         <div className="absolute inset-0 opacity-[0.04]"
           style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
       </div>
-
-      {/* Sol dekoratif çizgi — pointer-events-none */}
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-blue-400/40 to-transparent hidden lg:block pointer-events-none" />
 
-      {/* İçerik */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-24 pb-24">
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[11px] font-bold px-3 py-1.5 rounded-full mb-5 uppercase tracking-widest">
@@ -79,7 +72,7 @@ function HeroSlider({ user, onScroll }) {
           </h1>
 
           <p className="text-blue-200/70 text-sm sm:text-base mb-8 leading-relaxed max-w-lg">
-            {slide.desc}
+            {slide.description}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 mb-12">
@@ -114,23 +107,24 @@ function HeroSlider({ user, onScroll }) {
         </div>
       </div>
 
-      {/* Slider kontrolleri — z-20, içerik z-10'un üstünde */}
-      <div className="absolute bottom-6 left-0 right-0 z-20 flex items-center justify-center gap-4">
-        <button onClick={prev}
-          className="w-9 h-9 bg-white/10 hover:bg-white/25 border border-white/20 rounded-xl flex items-center justify-center text-white transition">
-          <ChevronLeft size={16} />
-        </button>
-        <div className="flex items-center gap-2">
-          {SLIDES.map((_, i) => (
-            <button key={i} onClick={() => go(i)}
-              className={`rounded-full transition-all duration-300 ${i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/30 hover:bg-white/60'}`} />
-          ))}
+      {slides.length > 1 && (
+        <div className="absolute bottom-6 left-0 right-0 z-20 flex items-center justify-center gap-4">
+          <button onClick={prev}
+            className="w-9 h-9 bg-white/10 hover:bg-white/25 border border-white/20 rounded-xl flex items-center justify-center text-white transition">
+            <ChevronLeft size={16} />
+          </button>
+          <div className="flex items-center gap-2">
+            {slides.map((_, i) => (
+              <button key={i} onClick={() => go(i)}
+                className={`rounded-full transition-all duration-300 ${i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/30 hover:bg-white/60'}`} />
+            ))}
+          </div>
+          <button onClick={next}
+            className="w-9 h-9 bg-white/10 hover:bg-white/25 border border-white/20 rounded-xl flex items-center justify-center text-white transition">
+            <ChevronRight size={16} />
+          </button>
         </div>
-        <button onClick={next}
-          className="w-9 h-9 bg-white/10 hover:bg-white/25 border border-white/20 rounded-xl flex items-center justify-center text-white transition">
-          <ChevronRight size={16} />
-        </button>
-      </div>
+      )}
     </section>
   )
 }
@@ -174,12 +168,9 @@ export default function Home() {
   })
 
   const CARD_BG = [
-    'from-blue-600 to-blue-800',
-    'from-sky-600 to-sky-800',
-    'from-indigo-600 to-indigo-800',
-    'from-cyan-600 to-cyan-800',
-    'from-blue-700 to-slate-700',
-    'from-slate-600 to-blue-700',
+    'from-blue-600 to-blue-800', 'from-sky-600 to-sky-800',
+    'from-indigo-600 to-indigo-800', 'from-cyan-600 to-cyan-800',
+    'from-blue-700 to-slate-700', 'from-slate-600 to-blue-700',
   ]
 
   return (
@@ -187,7 +178,6 @@ export default function Home() {
       <Navbar onCategorySelect={setCategory} activeCategory={category} />
       <HeroSlider user={user} onScroll={scrollToProducts} />
 
-      {/* Arama */}
       <div className="bg-white border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
           <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 focus-within:border-blue-400 focus-within:bg-white rounded-2xl px-4 transition-all">
@@ -204,7 +194,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Ürünler */}
       <div id="products" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -251,7 +240,6 @@ export default function Home() {
             {filtered.map((product, i) => (
               <div key={product.id}
                 className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100/40 transition-all duration-300 group flex flex-col">
-
                 <div onClick={() => navigate(`/urun/${product.id}`)}
                   className="relative overflow-hidden cursor-pointer flex-shrink-0"
                   style={{ height: '160px' }}>
@@ -283,7 +271,6 @@ export default function Home() {
                     </span>
                   )}
                 </div>
-
                 <div className="p-3 sm:p-4 flex flex-col flex-1">
                   <h3 onClick={() => navigate(`/urun/${product.id}`)}
                     className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-2 leading-snug mb-1 hover:text-blue-600 transition cursor-pointer">

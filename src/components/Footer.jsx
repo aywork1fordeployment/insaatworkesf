@@ -94,7 +94,7 @@ export default function Footer() {
               </div>
               <div>
                 <p className="text-xs text-slate-500 mb-0.5 font-medium uppercase tracking-wide">Telefon</p>
-                <a href="tel:+90" className="text-sm text-slate-400 hover:text-white transition">+90 (XXX) XXX XX XX</a>
+                <a href="tel:+90" className="text-sm text-slate-400 hover:text-white transition">+90 (532) 358 17 92</a>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -103,7 +103,7 @@ export default function Footer() {
               </div>
               <div>
                 <p className="text-xs text-slate-500 mb-0.5 font-medium uppercase tracking-wide">E-posta</p>
-                <a href="mailto:info@esfyapi.com" className="text-sm text-slate-400 hover:text-white transition">info@esfyapi.com</a>
+                <a href="mailto:esfyapi@hotmail.com" className="text-sm text-slate-400 hover:text-white transition">esfyapi@hotmail.com</a>
               </div>
             </div>
           </div>

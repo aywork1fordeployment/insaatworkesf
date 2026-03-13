@@ -3,7 +3,8 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import useAuthStore from '../../store/authStore'
 import { supabase } from '../../lib/supabase'
 
-import { LayoutDashboard, ShoppingBag, Package, Users, LogOut, ScrollText, Menu, X, Bell, Tag } from 'lucide-react'
+
+import { LayoutDashboard, ShoppingBag, Package, Users, LogOut, ScrollText, Menu, X, Bell, Tag, Monitor, Type } from 'lucide-react'
 
 const navItems = [
   { to: '/admin/dashboard', label: 'Dashboard',  icon: LayoutDashboard },
@@ -12,11 +13,12 @@ const navItems = [
   { to: '/admin/kategoriler',label: 'Kategoriler',icon: Tag },
   { to: '/admin/musteriler', label: 'Müşteriler', icon: Users },
   { to: '/admin/kayitlar',      label: 'Loglar',     icon: ScrollText },
+  { to: '/admin/slider', label: 'Slider Yönetimi', icon: Monitor },
+  { to: '/admin/marquee', label: 'Kayan Yazı', icon: Type }
+
 ]
-const handleLogout = () => {
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith('sb-')) localStorage.removeItem(key)
-  })
+const handleLogout = async () => {
+  await supabase.auth.signOut()
   window.location.href = '/'
 }
 
@@ -175,7 +177,7 @@ useEffect(() => {
         </header>
 
         <main className="flex-1 overflow-auto p-4 md:p-8 pb-20 md:pb-8">
-          <Outlet key={location.pathname} />
+          <Outlet />
         </main>
 
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700/60 z-30">

@@ -18,6 +18,9 @@ import Categories from './pages/admin/Categories'
 import Logs from './pages/admin/Logs'
 import About from './pages/About'
 import Contact from './pages/Contact'
+import SliderYonetimi from './pages/admin/SliderYonetimi'
+import MarqueeYonetimi from './pages/admin/MarqueeYonetimi'
+
 
 function PrivateRoute({ children }) {
   const { user, profile, loading } = useAuthStore()
@@ -75,6 +78,9 @@ function AppContent() {
     <Route path="kayitlar" element={<Logs />} />
     <Route path="musteriler" element={<Customers />} />
     <Route path="kategoriler" element={<Categories />} />
+    <Route path="slider" element={<SliderYonetimi />} />
+    <Route path="marquee" element={<MarqueeYonetimi />} />
+
   </Route>
 </Routes>
       {!isAdmin && <Footer />}

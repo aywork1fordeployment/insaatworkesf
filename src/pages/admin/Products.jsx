@@ -1,14 +1,19 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { uploadImage, optimizeUrl } from '../../lib/cloudinary'
-import { Plus, Trash2, Pencil, X, Upload, Image, AlertTriangle, Search, ChevronDown, Check, Copy, ArrowUpDown, AlertCircle, PackagePlus } from 'lucide-react'
+import {
+  Plus, Trash2, Pencil, X, Upload, AlertTriangle, Search,
+  ChevronDown, Check, Copy, ArrowUpDown, AlertCircle, PackagePlus, Layers
+} from 'lucide-react'
 
-const emptyForm = { name: '', price: '', stock: '', description: '', category: 'Diğer', image_url: '' }
+const emptyForm = { name: '', price: '', stock: '', base_label: '', description: '', category: 'Diğer', image_url: '' }
+const emptyVariant = { label: '', price: '', stock: '' }
 
 const writeProductLog = async (action, note) => {
   await supabase.from('order_logs').insert({ order_id: null, action, note })
 }
 
+// ─── Confirm Modal ───────────────────────────────────────────────────────────
 function ConfirmModal({ name, onConfirm, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
@@ -31,6 +36,7 @@ function ConfirmModal({ name, onConfirm, onClose }) {
   )
 }
 
+// ─── Bulk Stock Modal ────────────────────────────────────────────────────────
 function BulkStockModal({ selected, products, onClose, onSave }) {
   const [amount, setAmount] = useState('')
   const [mode, setMode] = useState('add')
@@ -89,6 +95,7 @@ function BulkStockModal({ selected, products, onClose, onSave }) {
   )
 }
 
+// ─── Category Dropdown ───────────────────────────────────────────────────────
 function CategoryDropdown({ cats, activeCat, onChange }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -120,6 +127,7 @@ function CategoryDropdown({ cats, activeCat, onChange }) {
   )
 }
 
+// ─── Sort Dropdown ───────────────────────────────────────────────────────────
 function SortDropdown({ sort, onChange }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -129,14 +137,10 @@ function SortDropdown({ sort, onChange }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
   const options = [
-    { value: 'newest', label: 'En Yeni' },
-    { value: 'oldest', label: 'En Eski' },
-    { value: 'price_asc', label: 'Fiyat ↑' },
-    { value: 'price_desc', label: 'Fiyat ↓' },
-    { value: 'stock_asc', label: 'Stok ↑' },
-    { value: 'stock_desc', label: 'Stok ↓' },
-    { value: 'name_asc', label: 'A → Z' },
-    { value: 'name_desc', label: 'Z → A' },
+    { value: 'newest', label: 'En Yeni' }, { value: 'oldest', label: 'En Eski' },
+    { value: 'price_asc', label: 'Fiyat ↑' }, { value: 'price_desc', label: 'Fiyat ↓' },
+    { value: 'stock_asc', label: 'Stok ↑' }, { value: 'stock_desc', label: 'Stok ↓' },
+    { value: 'name_asc', label: 'A → Z' }, { value: 'name_desc', label: 'Z → A' },
   ]
   const current = options.find(o => o.value === sort)
   return (
@@ -164,6 +168,7 @@ function SortDropdown({ sort, onChange }) {
   )
 }
 
+// ─── Image Input ─────────────────────────────────────────────────────────────
 function ImageInput({ value, onChange }) {
   const [uploading, setUploading] = useState(false)
   const [mode, setMode] = useState('url')
@@ -204,13 +209,135 @@ function ImageInput({ value, onChange }) {
   )
 }
 
+// ─── Variant Editor ──────────────────────────────────────────────────────────
+function VariantEditor({ variants, onChange }) {
+  const add = () => onChange([...variants, { ...emptyVariant, _key: Date.now() }])
+  const remove = (i) => onChange(variants.filter((_, idx) => idx !== i))
+  const update = (i, field, val) => {
+    const next = [...variants]
+    next[i] = { ...next[i], [field]: val }
+    onChange(next)
+  }
+
+  return (
+    <div className="col-span-1 sm:col-span-2">
+      <div className="flex items-center justify-between mb-2">
+        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+          <Layers size={12} /> Ek Varyantlar
+          <span className="text-gray-400 font-normal normal-case tracking-normal">(isteğe bağlı)</span>
+        </label>
+        <button type="button" onClick={add}
+          className="flex items-center gap-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-2.5 py-1.5 rounded-lg font-semibold transition">
+          <Plus size={11} /> Varyant Ekle
+        </button>
+      </div>
+
+      {variants.length === 0 ? (
+        <div className="border-2 border-dashed border-gray-200 rounded-xl px-4 py-3 text-center">
+          <p className="text-xs text-gray-400">Ek varyant yok — yukarıdaki seçenek etiketi zaten bir seçenek olarak görünür.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 px-1">
+            <span className="text-[10px] font-bold text-gray-400 uppercase">Seçenek</span>
+            <span className="text-[10px] font-bold text-gray-400 uppercase">Fiyat (₺)</span>
+            <span className="text-[10px] font-bold text-gray-400 uppercase">Stok</span>
+            <span />
+          </div>
+          {variants.map((v, i) => (
+            <div key={v.id || v._key || i} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center bg-gray-50 rounded-xl px-3 py-2">
+              <input type="text" value={v.label} onChange={e => update(i, 'label', e.target.value)}
+                placeholder="örn: 2.5L"
+                className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+              <input type="number" value={v.price} onChange={e => update(i, 'price', e.target.value)}
+                placeholder="0.00"
+                className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+              <input type="number" value={v.stock} onChange={e => update(i, 'stock', e.target.value)}
+                placeholder="0"
+                className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+              <button type="button" onClick={() => remove(i)}
+                className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition">
+                <Trash2 size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Ortak Form Alanları ─────────────────────────────────────────────────────
+// Hem add hem edit için kullanılır
+function ProductFormFields({ form, setForm, cats, imageKey }) {
+  const f = (key) => (e) => setForm(prev => ({ ...prev, [key]: e.target.value }))
+  return (
+    <>
+      {/* Ürün adı */}
+      <div>
+        <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Ürün Adı</label>
+        <input type="text" value={form.name} onChange={f('name')}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      {/* Seçenek etiketi (base_label) */}
+      <div>
+        <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">
+          Seçenek Etiketi
+          <span className="text-gray-400 font-normal normal-case tracking-normal ml-1">(zorunlu değil)</span>
+        </label>
+        <input type="text" value={form.base_label} onChange={f('base_label')}
+          placeholder="örn: 750ml, 1L, Standart"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <p className="text-[10px] text-gray-400 mt-1">Ürün detayında seçenek butonu olarak görünür</p>
+      </div>
+
+      {/* Fiyat */}
+      <div>
+        <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Fiyat (₺)</label>
+        <input type="number" value={form.price} onChange={f('price')}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      {/* Stok */}
+      <div>
+        <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Stok Adedi</label>
+        <input type="number" value={form.stock} onChange={f('stock')}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      {/* Açıklama */}
+      <div>
+        <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Açıklama</label>
+        <input type="text" value={form.description} onChange={f('description')}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      {/* Kategori */}
+      <div>
+        <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Kategori</label>
+        <select value={form.category} onChange={f('category')}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          {cats.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+
+      {/* Görsel */}
+      <ImageInput key={imageKey} value={form.image_url} onChange={url => setForm(prev => ({ ...prev, image_url: url }))} />
+    </>
+  )
+}
+
+// ─── Ana Bileşen ─────────────────────────────────────────────────────────────
 export default function Products() {
   const [products, setProducts] = useState([])
   const [form, setForm] = useState(emptyForm)
+  const [formVariants, setFormVariants] = useState([])
   const [adding, setAdding] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState(null)
   const [editForm, setEditForm] = useState({})
+  const [editVariants, setEditVariants] = useState([])
   const [cats, setCats] = useState([])
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [search, setSearch] = useState('')
@@ -256,36 +383,81 @@ export default function Products() {
     })
     .sort(sortFn)
 
+  const saveVariants = async (productId, variants, existingVariants = []) => {
+    const existingIds = existingVariants.map(v => v.id)
+    const keepIds = variants.filter(v => v.id).map(v => v.id)
+    const deleteIds = existingIds.filter(id => !keepIds.includes(id))
+    if (deleteIds.length > 0) {
+      await supabase.from('product_variants').delete().in('id', deleteIds)
+    }
+    for (const v of variants) {
+      if (!v.label || v.price === '' || v.stock === '') continue
+      if (v.id) {
+        await supabase.from('product_variants').update({
+          label: v.label, price: parseFloat(v.price), stock: parseInt(v.stock)
+        }).eq('id', v.id)
+      } else {
+        await supabase.from('product_variants').insert({
+          product_id: productId, label: v.label,
+          price: parseFloat(v.price), stock: parseInt(v.stock)
+        })
+      }
+    }
+  }
+
   const handleAdd = async () => {
     setAdding(true)
     try {
       const { data, error } = await supabase.from('products').insert({
-        name: form.name, price: parseFloat(form.price), stock: parseInt(form.stock),
-        description: form.description, category: form.category, image_url: form.image_url || null
+        name: form.name,
+        price: parseFloat(form.price) || 0,
+        stock: parseInt(form.stock) || 0,
+        base_label: form.base_label || null,
+        description: form.description,
+        category: form.category,
+        image_url: form.image_url || null
       }).select().single()
       if (error) throw error
-      await supabase.from('order_logs').insert({ order_id: null, action: 'urun_eklendi', note: `"${data.name}" eklendi — ₺${data.price}, Stok: ${data.stock}` })
-      setForm(emptyForm); setShowForm(false); setAdding(false)
+      if (formVariants.length > 0) await saveVariants(data.id, formVariants)
+      await supabase.from('order_logs').insert({
+        order_id: null, action: 'urun_eklendi',
+        note: `"${data.name}" eklendi — ₺${data.price}, Stok: ${data.stock}`
+      })
+      setForm(emptyForm); setFormVariants([]); setShowForm(false); setAdding(false)
       await fetchProducts()
     } catch (err) { console.error('Hata:', err); setAdding(false) }
+  }
+
+  const startEdit = async (p) => {
+    setEditId(p.id)
+    setEditForm({
+      name: p.name, price: p.price, stock: p.stock, base_label: p.base_label || '',
+      description: p.description || '', category: p.category || 'Diğer', image_url: p.image_url || ''
+    })
+    const { data } = await supabase.from('product_variants').select('*').eq('product_id', p.id).order('price')
+    setEditVariants(data || [])
   }
 
   const handleUpdate = async (id) => {
     const prev = products.find(p => p.id === id)
     await supabase.from('products').update({
       name: editForm.name, price: parseFloat(editForm.price), stock: parseInt(editForm.stock),
+      base_label: editForm.base_label || null,
       description: editForm.description, category: editForm.category, image_url: editForm.image_url || null
     }).eq('id', id)
+    const { data: existingVars } = await supabase.from('product_variants').select('*').eq('product_id', id)
+    await saveVariants(id, editVariants, existingVars || [])
     const changes = []
     if (prev.price != editForm.price) changes.push(`Fiyat: ₺${prev.price} → ₺${editForm.price}`)
     if (prev.stock != editForm.stock) changes.push(`Stok: ${prev.stock} → ${editForm.stock}`)
     if (prev.name != editForm.name) changes.push(`Ad: "${prev.name}" → "${editForm.name}"`)
     await writeProductLog('urun_guncellendi', `"${editForm.name}" güncellendi${changes.length ? ` — ${changes.join(', ')}` : ''}`)
-    setEditId(null); await fetchProducts()
+    setEditId(null); setEditVariants([]); await fetchProducts()
   }
 
   const handleDelete = async () => {
     const p = deleteTarget
+    await supabase.from('product_variants').delete().eq('product_id', p.id)
     await supabase.from('products').delete().eq('id', p.id)
     await writeProductLog('urun_silindi', `"${p.name}" silindi — ₺${p.price}`)
     setProducts(prev => prev.filter(x => x.id !== p.id))
@@ -294,15 +466,19 @@ export default function Products() {
 
   const handleDuplicate = async (p) => {
     const { data, error } = await supabase.from('products').insert({
-      name: `${p.name} (Kopya)`, price: p.price, stock: p.stock,
+      name: `${p.name} (Kopya)`, price: p.price, stock: p.stock, base_label: p.base_label,
       description: p.description, category: p.category, image_url: p.image_url
     }).select().single()
-    if (!error) { await writeProductLog('urun_kopyalandi', `"${p.name}" kopyalandı`); await fetchProducts() }
-  }
-
-  const startEdit = (p) => {
-    setEditId(p.id)
-    setEditForm({ name: p.name, price: p.price, stock: p.stock, description: p.description || '', category: p.category || 'Diğer', image_url: p.image_url || '' })
+    if (!error) {
+      const { data: vars } = await supabase.from('product_variants').select('*').eq('product_id', p.id)
+      if (vars && vars.length > 0) {
+        await supabase.from('product_variants').insert(
+          vars.map(v => ({ product_id: data.id, label: v.label, price: v.price, stock: v.stock }))
+        )
+      }
+      await writeProductLog('urun_kopyalandi', `"${p.name}" kopyalandı`)
+      await fetchProducts()
+    }
   }
 
   const toggleSelect = (id) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
@@ -318,15 +494,14 @@ export default function Products() {
         <h2 className="text-xl font-bold text-gray-800">
           Ürünler <span className="text-gray-400 font-normal text-sm ml-1">({filtered.length})</span>
         </h2>
-        <button onClick={() => { setShowForm(true); setForm(emptyForm) }}
+        <button onClick={() => { setShowForm(true); setForm(emptyForm); setFormVariants([]) }}
           className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-2 rounded-xl text-sm hover:bg-blue-700 transition font-semibold">
           <Plus size={15} /> <span className="hidden sm:inline">Ürün Ekle</span><span className="sm:hidden">Ekle</span>
         </button>
       </div>
 
-      {/* Filtre — mobilde iki satır */}
+      {/* Filtreler */}
       <div className="flex flex-col gap-2 mb-4">
-        {/* Arama */}
         <div className="relative w-full">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><X size={13} /></button>}
@@ -334,8 +509,6 @@ export default function Products() {
             placeholder="Ürün adı veya açıklamasında ara..."
             className="w-full h-10 pl-10 pr-9 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
         </div>
-
-        {/* Kategori + Sıralama + Kritik */}
         <div className="flex gap-2">
           <CategoryDropdown cats={cats} activeCat={activeCat} onChange={setActiveCat} />
           <SortDropdown sort={sort} onChange={setSort} />
@@ -368,70 +541,45 @@ export default function Products() {
         </div>
       )}
 
-      {/* Ekleme Formu */}
+      {/* ─── Ekleme Formu ─── */}
       {showForm && (
         <div className="bg-white rounded-xl shadow-sm p-4 mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[['name','Ürün Adı','text'],['price','Fiyat (₺)','number'],['stock','Stok Adedi','number'],['description','Açıklama','text']].map(([key, label, type]) => (
-            <div key={key}>
-              <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">{label}</label>
-              <input type={type} value={form[key]} onChange={e => setForm({...form, [key]: e.target.value})}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-          ))}
-          <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Kategori</label>
-            <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              {cats.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div className="hidden sm:block" />
-          <ImageInput key={showForm ? 'open' : 'closed'} value={form.image_url} onChange={url => setForm({...form, image_url: url})} />
+          <ProductFormFields form={form} setForm={setForm} cats={cats} imageKey={showForm ? 'open' : 'closed'} />
+          <VariantEditor variants={formVariants} onChange={setFormVariants} />
           <div className="col-span-1 sm:col-span-2 flex gap-2">
             <button onClick={handleAdd} disabled={adding}
               className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm hover:bg-blue-700 transition disabled:opacity-50 font-semibold">
               {adding ? 'Ekleniyor...' : 'Kaydet'}
             </button>
-            <button onClick={() => setShowForm(false)} className="px-5 py-2.5 rounded-xl text-sm border border-gray-200 text-gray-500 hover:bg-gray-50 transition">İptal</button>
+            <button onClick={() => { setShowForm(false); setFormVariants([]) }}
+              className="px-5 py-2.5 rounded-xl text-sm border border-gray-200 text-gray-500 hover:bg-gray-50 transition">İptal</button>
           </div>
         </div>
       )}
 
-      {/* Düzenleme Modalı */}
+      {/* ─── Düzenleme Modalı ─── */}
       {editId && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-gray-900">Ürünü Düzenle</h3>
-              <button onClick={() => setEditId(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+              <button onClick={() => { setEditId(null); setEditVariants([]) }} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[['name','Ürün Adı','text'],['price','Fiyat (₺)','number'],['stock','Stok','number'],['description','Açıklama','text']].map(([key, label, type]) => (
-                <div key={key}>
-                  <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">{label}</label>
-                  <input type={type} value={editForm[key]} onChange={e => setEditForm({...editForm, [key]: e.target.value})}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-              ))}
-              <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Kategori</label>
-                <select value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  {cats.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <div className="hidden sm:block" />
-              <ImageInput value={editForm.image_url} onChange={url => setEditForm({...editForm, image_url: url})} />
+              <ProductFormFields form={editForm} setForm={setEditForm} cats={cats} imageKey={editId} />
+              <VariantEditor variants={editVariants} onChange={setEditVariants} />
               <div className="col-span-1 sm:col-span-2 flex gap-2 mt-1">
-                <button onClick={() => handleUpdate(editId)} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm hover:bg-blue-700 transition font-semibold">Güncelle</button>
-                <button onClick={() => setEditId(null)} className="px-5 py-2.5 rounded-xl text-sm border border-gray-200 text-gray-500 hover:bg-gray-50 transition">İptal</button>
+                <button onClick={() => handleUpdate(editId)}
+                  className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm hover:bg-blue-700 transition font-semibold">Güncelle</button>
+                <button onClick={() => { setEditId(null); setEditVariants([]) }}
+                  className="px-5 py-2.5 rounded-xl text-sm border border-gray-200 text-gray-500 hover:bg-gray-50 transition">İptal</button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Ürün Listesi */}
+      {/* ─── Ürün Listesi ─── */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -458,14 +606,15 @@ export default function Products() {
               <div key={p.id} className={`flex items-center gap-3 px-4 py-3 transition ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                 <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(p.id)}
                   className="w-4 h-4 rounded accent-blue-600 cursor-pointer flex-shrink-0" />
-
                 <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 bg-blue-50 flex items-center justify-center">
                   {p.image_url ? <img src={optimizeUrl(p.image_url, 80)} alt={p.name} className="w-full h-full object-cover" /> : <span className="text-lg">🪣</span>}
                 </div>
-
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="font-semibold text-gray-800 text-sm truncate max-w-[140px] sm:max-w-none">{p.name}</p>
+                    {p.base_label && (
+                      <span className="text-[10px] bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-full flex-shrink-0">{p.base_label}</span>
+                    )}
                     <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full flex-shrink-0 hidden sm:inline">{p.category || '—'}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
@@ -475,7 +624,6 @@ export default function Products() {
                     </span>
                   </div>
                 </div>
-
                 <div className="flex items-center gap-0.5 flex-shrink-0">
                   <button onClick={() => startEdit(p)} className="text-blue-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition">
                     <Pencil size={14} />

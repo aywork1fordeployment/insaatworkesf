@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { ShoppingCart, LogOut, Menu, X, Shield, ChevronDown, Package, MapPin } from 'lucide-react'
+import { ShoppingCart, LogOut, Menu, X, ChevronDown, Package, MapPin, Shield, ChevronRight } from 'lucide-react'
 import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
 import { supabase } from '../lib/supabase'
@@ -10,17 +10,29 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
   const getCount = useCartStore(s => s.getCount)
   const navigate = useNavigate()
   const location = useLocation()
+  const [marqueeItems, setMarqueeItems] = useState([])
   const [mobileOpen, setMobileOpen] = useState(false)
   const [megaOpen, setMegaOpen] = useState(false)
   const [categories, setCategories] = useState([])
   const [scrolled, setScrolled] = useState(false)
-  const isActive = (path) => location.pathname === path
+  const [expandedMobile, setExpandedMobile] = useState(null)
   const megaRef = useRef()
   const count = getCount()
 
+  const isActive = (path) => location.pathname === path
+
   useEffect(() => {
-    supabase.from('categories').select('name').order('name')
-      .then(({ data }) => setCategories(data?.map(c => c.name) || []))
+    supabase.from('categories').select('*').order('name')
+      .then(({ data }) => setCategories(data || []))
+  }, [])
+
+  useEffect(() => {
+    supabase
+      .from('marquee_items')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order')
+      .then(({ data }) => setMarqueeItems(data || []))
   }, [])
 
   useEffect(() => {
@@ -39,10 +51,8 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
 
   useEffect(() => { setMobileOpen(false); setMegaOpen(false) }, [location.pathname])
 
-  const handleLogout = () => {
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('sb-')) localStorage.removeItem(key)
-    })
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
     window.location.href = '/'
   }
 
@@ -58,40 +68,54 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
     }
   }
 
-  const cols = [[], [], []]
-  categories.forEach((cat, i) => cols[i % 3].push(cat))
+  const parents = categories.filter(c => !c.parent_id)
+  const childrenOf = (parentId) => categories.filter(c => c.parent_id === parentId)
 
   return (
     <>
-      {/* Top bar — kayan yazı */}
-      <div className="bg-blue-950 text-blue-300 text-[11px] py-1.5 overflow-hidden hidden md:block border-b border-blue-800/60">
-        <div className="flex animate-marquee whitespace-nowrap">
-          {[...Array(3)].map((_, i) => (
-            <span key={i} className="flex items-center gap-10 mx-12">
-              <span className="flex items-center gap-2">
-                <MapPin size={10} className="text-blue-400" />
-                <span className="text-white font-semibold">Erzurum</span>
-              </span>
-              <span className="text-blue-700">·</span>
-              <span>Permolit Boya <span className="text-sky-400 font-bold">Doğu Anadolu</span> Bölge Bayii</span>
-              <span className="text-blue-700">·</span>
-              <span>Profesyonel Satış & Teknik Destek</span>
-              <span className="text-blue-700">·</span>
-              <span className="flex items-center gap-1.5">
-                <Shield size={10} className="text-blue-400" />
-                Orijinal & Güvenilir Ürünler
-              </span>
-              <span className="text-blue-700">·</span>
-              <a href="https://www.permolitboya.com.tr/" target="_blank" rel="noopener noreferrer"
-                className="text-sky-400 hover:text-white transition font-bold tracking-wide">
-                permolitboya.com.tr ↗
-              </a>
-              <span className="text-blue-700">·</span>
-            </span>
+{/* Top bar — kayan yazı */}
+{marqueeItems.length > 0 && (
+  <div className="bg-blue-950 text-blue-300 text-[11px] py-2 overflow-hidden hidden md:block border-b border-blue-800/60 relative w-full">
+    <div className="flex flex-nowrap min-w-full">
+      {/* Aşağıdaki animate-marquee sınıfı iki kez basılacak.
+          İçerideki [...Array(10)] ise senin o 'ABCA' yazılarını yan yana dizer.
+      */}
+      <div className="flex animate-marquee whitespace-nowrap">
+        
+        {/* BİRİNCİ GRUP (Ekranı dolduran vagonlar) */}
+        <div className="flex items-center">
+          {[...Array(10)].map((_, i) => (
+            <div key={`vagon1-${i}`} className="flex items-center">
+              {marqueeItems.map((item) => (
+                <div key={`item1-${item.id}-${i}`} className="flex items-center mx-10">
+                  <span className="font-bold uppercase tracking-widest whitespace-nowrap" 
+                        dangerouslySetInnerHTML={{ __html: item.text }} />
+                  <span className="text-blue-700/50 font-black ml-10">/</span>
+                </div>
+              ))}
+            </div>
           ))}
         </div>
-      </div>
 
+        {/* İKİNCİ GRUP (Sonsuz döngü için birinci grubun kopyası) */}
+        <div className="flex items-center">
+          {[...Array(10)].map((_, i) => (
+            <div key={`vagon2-${i}`} className="flex items-center">
+              {marqueeItems.map((item) => (
+                <div key={`item2-${item.id}-${i}`} className="flex items-center mx-10">
+                  <span className="font-bold uppercase tracking-widest whitespace-nowrap" 
+                        dangerouslySetInnerHTML={{ __html: item.text }} />
+                  <span className="text-blue-700/50 font-black ml-10">/</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
       {/* NAV — koyu mavi zemin */}
       <nav className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
@@ -117,19 +141,19 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-blue-950" />
               </div>
-              <div className="hidden sm:block">
+              <div className="hidden md:block">
                 <span className="text-white font-black text-[16px] leading-tight block tracking-tight">ESF Yapı & İnşaat</span>
                 <span className="text-blue-400 text-[10px] uppercase tracking-[0.18em] font-medium">Boya & Sarf Malzemeleri</span>
               </div>
             </Link>
 
-            {/* Mobil orta — başlık */}
+            {/* Mobil orta başlık */}
             <div className="flex md:hidden flex-1 justify-center flex-col items-center">
               <span className="text-white font-black text-[19px] tracking-tight leading-tight">ESF Yapı & İnşaat</span>
               <span className="text-blue-400 text-[9px] uppercase tracking-[0.2em] font-medium">Boya & Sarf</span>
             </div>
 
-            {/* Desktop Nav linkleri */}
+            {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-1 flex-1 ml-4">
               <Link to="/"
                 className={`text-sm font-semibold px-4 py-2 rounded-xl transition-all ${
@@ -140,6 +164,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
                 Ana Sayfa
               </Link>
 
+              {/* Mega Menu */}
               <div ref={megaRef} className="relative">
                 <button
                   onClick={() => setMegaOpen(!megaOpen)}
@@ -155,10 +180,12 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
                 </button>
 
                 {megaOpen && (
-                  <div onMouseLeave={() => setMegaOpen(false)}
+                  <div
+                    onMouseLeave={() => setMegaOpen(false)}
                     className="absolute top-full left-0 mt-3 bg-blue-950/95 backdrop-blur-xl rounded-2xl border border-white/10 z-50 overflow-hidden"
-                    style={{ width: '580px', boxShadow: '0 24px 64px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)' }}>
+                    style={{ width: '640px', boxShadow: '0 24px 64px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)' }}>
 
+                    {/* Mega menu header */}
                     <div className="bg-gradient-to-r from-blue-700 to-blue-600 px-6 py-4 flex items-center justify-between border-b border-white/10">
                       <div>
                         <p className="text-white font-bold text-sm">Ürün Kategorileri</p>
@@ -170,24 +197,52 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
                       </button>
                     </div>
 
-                    <div className="p-4 grid grid-cols-3 gap-0.5">
-                      {cols.map((col, ci) => (
-                        <div key={ci} className="flex flex-col">
-                          {col.map(cat => (
-                            <button key={cat} onClick={() => handleCategorySelect(cat)}
-                              className={`text-left px-3 py-2.5 rounded-xl text-sm transition group flex items-center gap-2 ${
-                                activeCategory === cat
-                                  ? 'bg-white/15 text-white font-semibold'
-                                  : 'text-blue-300 hover:bg-white/10 hover:text-white'
-                              }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition ${
-                                activeCategory === cat ? 'bg-sky-400' : 'bg-blue-600 group-hover:bg-sky-400'
-                              }`} />
-                              {cat}
-                            </button>
-                          ))}
+                    {/* Kategoriler — parent + children */}
+                    <div className="p-4 max-h-96 overflow-y-auto">
+                      {parents.length === 0 ? (
+                        <p className="text-sm text-blue-400 text-center py-4">Kategori bulunamadı</p>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-3">
+                          {parents.map(parent => {
+                            const children = childrenOf(parent.id)
+                            return (
+                              <div key={parent.id} className="bg-white/5 rounded-xl p-3 border border-white/10">
+                                {/* Parent */}
+                                <button
+                                  onClick={() => handleCategorySelect(parent.name)}
+                                  className={`w-full text-left flex items-center gap-2 font-bold text-sm mb-2 pb-2 border-b border-white/10 transition hover:text-white ${
+                                    activeCategory === parent.name ? 'text-white' : 'text-blue-200'
+                                  }`}>
+                                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                    activeCategory === parent.name ? 'bg-sky-400' : 'bg-blue-500'
+                                  }`} />
+                                  {parent.name}
+                                </button>
+
+                                {/* Children */}
+                                {children.length > 0 ? (
+                                  <div className="flex flex-col gap-0.5">
+                                    {children.map(child => (
+                                      <button key={child.id}
+                                        onClick={() => handleCategorySelect(child.name)}
+                                        className={`text-left flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition ${
+                                          activeCategory === child.name
+                                            ? 'bg-white/15 text-white font-semibold'
+                                            : 'text-blue-400 hover:bg-white/10 hover:text-blue-200'
+                                        }`}>
+                                        <ChevronRight size={10} className="text-blue-600 flex-shrink-0" />
+                                        {child.name}
+                                      </button>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-[11px] text-blue-600 px-2">Alt kategori yok</p>
+                                )}
+                              </div>
+                            )
+                          })}
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
                 )}
@@ -283,6 +338,8 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
         {/* Mobil menü */}
         {mobileOpen && (
           <div className="md:hidden bg-blue-950/98 backdrop-blur-xl border-t border-white/10 max-h-[85vh] overflow-y-auto relative z-10">
+
+            {/* Kullanıcı bilgisi */}
             {user ? (
               <div className="flex items-center gap-3 px-5 py-4 bg-white/5 border-b border-white/10">
                 <div className="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 ring-2 ring-sky-500/30">
@@ -303,6 +360,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
               </div>
             )}
 
+            {/* Nav linkleri */}
             <div className="px-3 py-2 border-b border-white/10">
               {[
                 { to: '/', label: 'Ana Sayfa' },
@@ -324,6 +382,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
               ))}
             </div>
 
+            {/* Mobil kategoriler — parent + sub */}
             <div className="px-4 py-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[10px] font-bold text-blue-500 uppercase tracking-[0.2em]">Kategoriler</p>
@@ -332,17 +391,52 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
                   Tümünü Gör
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                {categories.map(cat => (
-                  <button key={cat} onClick={() => handleCategorySelect(cat)}
-                    className={`text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition leading-snug ${
-                      activeCategory === cat
-                        ? 'bg-sky-500 text-white shadow-lg shadow-sky-900/40'
-                        : 'bg-white/5 text-blue-300 hover:bg-white/10 hover:text-white border border-white/10'
-                    }`}>
-                    {cat}
-                  </button>
-                ))}
+
+              <div className="flex flex-col gap-2">
+                {parents.map(parent => {
+                  const children = childrenOf(parent.id)
+                  const isExpanded = expandedMobile === parent.id
+
+                  return (
+                    <div key={parent.id} className="bg-white/5 rounded-xl overflow-hidden border border-white/10">
+                      {/* Parent butonu */}
+                      <div className="flex items-center">
+                        <button
+                          onClick={() => handleCategorySelect(parent.name)}
+                          className={`flex-1 text-left px-4 py-3 text-sm font-bold transition ${
+                            activeCategory === parent.name ? 'text-white' : 'text-blue-200'
+                          }`}>
+                          {parent.name}
+                        </button>
+                        {children.length > 0 && (
+                          <button
+                            onClick={() => setExpandedMobile(isExpanded ? null : parent.id)}
+                            className="px-3 py-3 text-blue-400 hover:text-sky-400 transition">
+                            <ChevronDown size={15} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Alt kategoriler */}
+                      {isExpanded && children.length > 0 && (
+                        <div className="border-t border-white/10 bg-blue-900/30">
+                          {children.map(child => (
+                            <button key={child.id}
+                              onClick={() => handleCategorySelect(child.name)}
+                              className={`w-full text-left flex items-center gap-2 px-5 py-2.5 text-xs font-medium transition ${
+                                activeCategory === child.name
+                                  ? 'text-white bg-white/10'
+                                  : 'text-blue-400 hover:bg-white/5 hover:text-blue-200'
+                              }`}>
+                              <ChevronRight size={11} className="text-blue-600 flex-shrink-0" />
+                              {child.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
