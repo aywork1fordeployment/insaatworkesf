@@ -50,35 +50,36 @@ function OrderDetailModal({ order, onClose, onCancel }) {
   const [cancelling, setCancelling] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
+  // order_items varsa satır bazlı göster
+  const orderItems = Array.isArray(order.order_items) ? order.order_items : []
+
   const handleCancel = async () => {
-  setCancelling(true)
-  try {
-    const { error } = await supabase
-      .from('orders')
-      .update({ status: 'cancelled' })
-      .eq('id', order.id)
-      .eq('status', 'pending') // sadece pending iptali
+    setCancelling(true)
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'cancelled' })
+        .eq('id', order.id)
+        .eq('status', 'pending')
 
-    if (error) throw error
+      if (error) throw error
 
-    await supabase.from('order_logs').insert({
-      order_id: order.id,
-      action: 'siparis_iptal',
-      note: 'Müşteri siparişi iptal etti.'
-    })
-
-  } catch (err) {
-    console.error('İptal hatası:', err)
+      await supabase.from('order_logs').insert({
+        order_id: order.id,
+        action: 'siparis_iptal',
+        note: 'Müşteri siparişi iptal etti.',
+      })
+    } catch (err) {
+      console.error('İptal hatası:', err)
+      setCancelling(false)
+      setShowConfirm(false)
+      return
+    }
     setCancelling(false)
     setShowConfirm(false)
-    return
+    onCancel()
+    onClose()
   }
-
-  setCancelling(false)
-  setShowConfirm(false)
-  onCancel()
-  onClose()
-}
 
   return (
     <>
@@ -91,7 +92,7 @@ function OrderDetailModal({ order, onClose, onCancel }) {
       )}
 
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between p-6 border-b border-gray-100">
             <div>
               <h3 className="font-bold text-gray-900">Sipariş #{order.id}</h3>
@@ -108,6 +109,31 @@ function OrderDetailModal({ order, onClose, onCancel }) {
                 {s.label}
               </span>
             </div>
+
+            {/* Ürün satırları */}
+            {orderItems.length > 0 && (
+              <div className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Ürünler</p>
+                {orderItems.map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-gray-700 font-medium truncate">{item.name}</span>
+                      {item.variant_label && (
+                        <span className="text-[11px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
+                          {item.variant_label}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                      <span className="text-gray-400 text-xs">x{item.quantity}</span>
+                      <span className="font-semibold text-gray-800">
+                        ₺{(Number(item.price) * item.quantity).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="bg-gray-50 rounded-xl p-4 flex flex-col gap-2 text-sm">
               <div className="flex justify-between text-gray-600">
@@ -163,19 +189,18 @@ export default function UserOrders() {
   const [selected, setSelected] = useState(null)
 
   const fetchOrders = async () => {
-  const { data } = await supabase
-    .from('orders').select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-  const result = data || []
-  setOrders(result)
-  setLoading(false)
-  // Açık modal varsa güncelle
-  if (selected) {
-    const updated = result.find(o => o.id === selected.id)
-    if (updated) setSelected(updated)
+    const { data } = await supabase
+      .from('orders').select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+    const result = data || []
+    setOrders(result)
+    setLoading(false)
+    if (selected) {
+      const updated = result.find(o => o.id === selected.id)
+      if (updated) setSelected(updated)
+    }
   }
-}
 
   useEffect(() => { fetchOrders() }, [])
 
@@ -219,6 +244,7 @@ export default function UserOrders() {
             {orders.map(order => {
               const s = STATUS[order.status] || STATUS.pending
               const final = Number(order.final_price) || Number(order.total_price) || 0
+              const orderItems = Array.isArray(order.order_items) ? order.order_items : []
               return (
                 <div key={order.id} onClick={() => setSelected(order)}
                   className="bg-white rounded-2xl border border-slate-100 p-5 hover:border-blue-200 hover:shadow-md transition cursor-pointer group">
@@ -245,6 +271,17 @@ export default function UserOrders() {
                       <ChevronRight size={16} className="text-slate-300 group-hover:text-blue-400 transition" />
                     </div>
                   </div>
+
+                  {/* Ürün özeti */}
+                  {orderItems.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-slate-50 flex flex-wrap gap-1.5">
+                      {orderItems.map((item, idx) => (
+                        <span key={idx} className="text-[11px] bg-slate-50 text-slate-500 px-2 py-0.5 rounded-full">
+                          {item.name}{item.variant_label ? ` · ${item.variant_label}` : ''} x{item.quantity}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   {order.admin_note && (
                     <div className="mt-3 pt-3 border-t border-slate-50 flex items-start gap-2">

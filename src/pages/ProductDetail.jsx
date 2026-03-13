@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import useCartStore from '../store/cartStore'
 import Navbar from '../components/Navbar'
 import { optimizeUrl } from '../lib/cloudinary'
-import { ShoppingCart, ArrowLeft, Plus, Minus } from 'lucide-react'
+import { ShoppingCart, ArrowLeft, Plus, Minus, Tag } from 'lucide-react'
 
 export default function ProductDetail() {
   const { id } = useParams()
@@ -12,20 +12,29 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null)
   const [allVariants, setAllVariants] = useState([])
   const [selectedVariant, setSelectedVariant] = useState(null)
+  const [discount, setDiscount] = useState(null)
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
   const addItem = useCartStore(s => s.addItem)
 
   useEffect(() => {
     const load = async () => {
-      const [{ data: prod }, { data: vars }] = await Promise.all([
+      const now = new Date().toISOString()
+      const [{ data: prod }, { data: vars }, { data: disc }] = await Promise.all([
         supabase.from('products').select('*').eq('id', id).single(),
-        supabase.from('product_variants').select('*').eq('product_id', id).order('price')
+        supabase.from('product_variants').select('*').eq('product_id', id).order('price'),
+        supabase.from('discounts')
+          .select('*')
+          .eq('product_id', id)
+          .eq('is_active', true)
+          .lte('start_date', now)
+          .gte('end_date', now)
+          .limit(1)
       ])
 
       setProduct(prod)
+      setDiscount(disc && disc.length > 0 ? disc[0] : null)
 
-      // Base ürünü her zaman ilk seçenek olarak dahil et
       const baseVariant = {
         id: 'base',
         label: prod?.base_label || 'Standart',
@@ -33,7 +42,6 @@ export default function ProductDetail() {
         stock: prod?.stock,
         isBase: true,
       }
-
       const combined = [baseVariant, ...(vars || [])]
       setAllVariants(combined)
       setSelectedVariant(combined[0])
@@ -45,16 +53,24 @@ export default function ProductDetail() {
   const activePrice = selectedVariant?.price ?? product?.price
   const activeStock = selectedVariant?.stock ?? product?.stock
 
+  // İndirimli fiyat hesapla (sadece base varyant için — varyantlara indirim uygulanmaz isteğe göre değiştirilebilir)
+  const discountRate = discount ? Number(discount.rate) : 0
+  const isBaseVariant = selectedVariant?.isBase
+  const discountedPrice = discountRate > 0 && isBaseVariant
+    ? Number(activePrice) * (1 - discountRate / 100)
+    : null
+  const finalPrice = discountedPrice ?? Number(activePrice)
+
   const handleAdd = () => {
     if (!product) return
     const cartItem = {
       ...product,
-      price: activePrice,
+      price: finalPrice,           // ← indirimli fiyat
+      original_price: Number(activePrice), // ← orijinal fiyat (gösterim için)
+      discount_rate: discountedPrice ? discountRate : 0,
       stock: activeStock,
       variant_label: selectedVariant?.label || null,
-      ...(selectedVariant && !selectedVariant.isBase && {
-        variant_id: selectedVariant.id,
-      }),
+      ...(selectedVariant && !selectedVariant.isBase && { variant_id: selectedVariant.id }),
     }
     addItem(cartItem, quantity)
     setAdded(true)
@@ -86,6 +102,12 @@ export default function ProductDetail() {
 
             {/* Görsel */}
             <div className={`${product.image_url ? 'bg-gray-100' : 'bg-gradient-to-br from-blue-600 to-blue-800'} flex items-center justify-center min-h-72 relative overflow-hidden group`}>
+              {/* İndirim rozeti */}
+              {discountRate > 0 && isBaseVariant && (
+                <div className="absolute top-4 left-4 z-10 bg-red-500 text-white text-sm font-black px-3 py-1.5 rounded-2xl shadow-lg flex items-center gap-1.5">
+                  <Tag size={12} /> %{discountRate.toFixed(0)} İndirim
+                </div>
+              )}
               {product.image_url ? (
                 <img
                   src={optimizeUrl(product.image_url, 600)}
@@ -105,9 +127,7 @@ export default function ProductDetail() {
             <div className="p-10 flex flex-col justify-center">
 
               <div className="flex items-center gap-2 mb-3 flex-wrap">
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                  outOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'
-                }`}>
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${outOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
                   {outOfStock ? 'Stok yok' : `${activeStock} adet stokta`}
                 </span>
                 {product.category && (
@@ -117,21 +137,21 @@ export default function ProductDetail() {
                 )}
               </div>
 
-              <h1 className="text-3xl font-bold text-slate-900 mb-3 leading-relaxed">
-                {product.name}
-              </h1>
+              <h1 className="text-3xl font-bold text-slate-900 mb-3 leading-relaxed">{product.name}</h1>
 
               {product.description && (
                 <p className="text-slate-500 mb-5 leading-relaxed text-sm">{product.description}</p>
               )}
 
-              {/* Varyant seçimi — her zaman var (en az base) */}
+              {/* Varyant seçimi */}
               <div className="mb-5">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">Seçenek</p>
                 <div className="flex flex-wrap gap-2">
                   {allVariants.map(v => {
                     const isSelected = selectedVariant?.id === v.id
                     const noStock = !v.stock || v.stock === 0
+                    // varyanta indirim uygula (sadece base için)
+                    const vDiscount = v.isBase && discountRate > 0 ? Number(v.price) * (1 - discountRate / 100) : null
                     return (
                       <button
                         key={v.id}
@@ -145,15 +165,18 @@ export default function ProductDetail() {
                               : 'border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600'
                         }`}>
                         <span>{v.label}</span>
-                        <span className={`block text-[10px] font-bold mt-0.5 ${
-                          isSelected ? 'text-blue-100' : noStock ? 'text-slate-300' : 'text-blue-500'
-                        }`}>
-                          ₺{Number(v.price).toFixed(2)}
+                        <span className={`block text-[10px] font-bold mt-0.5 ${isSelected ? 'text-blue-100' : noStock ? 'text-slate-300' : 'text-blue-500'}`}>
+                          {vDiscount !== null ? (
+                            <>
+                              <span className="line-through opacity-60 mr-1">₺{Number(v.price).toFixed(2)}</span>
+                              ₺{vDiscount.toFixed(2)}
+                            </>
+                          ) : (
+                            `₺${Number(v.price).toFixed(2)}`
+                          )}
                         </span>
                         {noStock && (
-                          <span className="absolute -top-1.5 -right-1.5 text-[9px] bg-red-400 text-white px-1.5 py-0.5 rounded-full font-bold">
-                            Tükendi
-                          </span>
+                          <span className="absolute -top-1.5 -right-1.5 text-[9px] bg-red-400 text-white px-1.5 py-0.5 rounded-full font-bold">Tükendi</span>
                         )}
                       </button>
                     )
@@ -161,9 +184,21 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Fiyat */}
-              <div className="text-4xl font-bold text-blue-600 mb-6">
-                ₺{Number(activePrice).toFixed(2)}
+              {/* Fiyat — kaçtan kaça düştü */}
+              <div className="mb-6">
+                {discountedPrice !== null ? (
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-4xl font-bold text-green-600">₺{discountedPrice.toFixed(2)}</span>
+                    <div className="flex flex-col">
+                      <span className="text-lg text-slate-400 line-through">₺{Number(activePrice).toFixed(2)}</span>
+                      <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full text-center">
+                        %{discountRate.toFixed(0)} indirim
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-4xl font-bold text-blue-600">₺{Number(activePrice).toFixed(2)}</div>
+                )}
               </div>
 
               {/* Miktar */}
@@ -182,6 +217,14 @@ export default function ProductDetail() {
                   </button>
                 </div>
               </div>
+
+              {/* Toplam — çok miktarda fark görünsün */}
+              {quantity > 1 && (
+                <div className="mb-4 bg-blue-50 rounded-xl px-4 py-2.5 flex items-center justify-between">
+                  <span className="text-sm text-slate-500">{quantity} adet toplam</span>
+                  <span className="font-bold text-blue-700">₺{(finalPrice * quantity).toFixed(2)}</span>
+                </div>
+              )}
 
               <button
                 onClick={handleAdd}

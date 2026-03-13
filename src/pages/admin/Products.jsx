@@ -3,7 +3,8 @@ import { supabase } from '../../lib/supabase'
 import { uploadImage, optimizeUrl } from '../../lib/cloudinary'
 import {
   Plus, Trash2, Pencil, X, Upload, AlertTriangle, Search,
-  ChevronDown, Check, Copy, ArrowUpDown, AlertCircle, PackagePlus, Layers
+  ChevronDown, Check, Copy, ArrowUpDown, AlertCircle, PackagePlus, Layers,
+  Tag, Percent
 } from 'lucide-react'
 
 const emptyForm = { name: '', price: '', stock: '', base_label: '', description: '', category: 'Diğer', image_url: '' }
@@ -11,6 +12,20 @@ const emptyVariant = { label: '', price: '', stock: '' }
 
 const writeProductLog = async (action, note) => {
   await supabase.from('order_logs').insert({ order_id: null, action, note })
+}
+
+// İndirimli fiyat hesapla
+const calcDiscounted = (price, rate) => Number(price) * (1 - Number(rate) / 100)
+
+// Bugünkü aktif indirim
+const getActiveDiscount = (discounts, productId) => {
+  const now = new Date()
+  return discounts.find(d =>
+    d.product_id === productId &&
+    d.is_active &&
+    new Date(d.start_date) <= now &&
+    new Date(d.end_date) >= now
+  ) || null
 }
 
 // ─── Confirm Modal ───────────────────────────────────────────────────────────
@@ -30,6 +45,138 @@ function ConfirmModal({ name, onConfirm, onClose }) {
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">Vazgeç</button>
           <button onClick={onConfirm} className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition">Evet, Sil</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Discount Modal ──────────────────────────────────────────────────────────
+function DiscountModal({ product, existingDiscount, onClose, onSave }) {
+  const [rate, setRate] = useState(existingDiscount?.rate ?? '')
+  const [startDate, setStartDate] = useState(
+    existingDiscount?.start_date ? existingDiscount.start_date.slice(0, 16) : new Date().toISOString().slice(0, 16)
+  )
+  const [endDate, setEndDate] = useState(
+    existingDiscount?.end_date ? existingDiscount.end_date.slice(0, 16) : ''
+  )
+  const [saving, setSaving] = useState(false)
+
+  const discountedPrice = rate ? calcDiscounted(product.price, rate) : null
+
+  const handleSave = async () => {
+    if (!rate || !endDate) return
+    setSaving(true)
+    if (existingDiscount) {
+      await supabase.from('discounts').update({
+        rate: parseFloat(rate),
+        start_date: startDate,
+        end_date: endDate,
+        is_active: true,
+      }).eq('id', existingDiscount.id)
+    } else {
+      await supabase.from('discounts').insert({
+        product_id: product.id,
+        rate: parseFloat(rate),
+        start_date: startDate,
+        end_date: endDate,
+        is_active: true,
+      })
+    }
+    await writeProductLog('indirim_eklendi', `"${product.name}" için %${rate} indirim tanımlandı`)
+    setSaving(false)
+    onSave()
+    onClose()
+  }
+
+  const handleRemove = async () => {
+    if (!existingDiscount) return
+    setSaving(true)
+    await supabase.from('discounts').update({ is_active: false }).eq('id', existingDiscount.id)
+    await writeProductLog('indirim_kaldirildi', `"${product.name}" indirimi kaldırıldı`)
+    setSaving(false)
+    onSave()
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+            <Tag size={16} className="text-blue-600" /> İndirim Tanımla
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+        </div>
+
+        {/* Ürün özeti */}
+        <div className="bg-gray-50 rounded-xl p-3 mb-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {product.image_url
+              ? <img src={optimizeUrl(product.image_url, 80)} alt="" className="w-full h-full object-cover" />
+              : <span className="text-lg">🪣</span>}
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-gray-800 text-sm truncate">{product.name}</p>
+            <p className="text-blue-700 font-bold text-sm">₺{Number(product.price).toFixed(2)}</p>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 mb-5">
+          {/* İndirim oranı */}
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">
+              İndirim Oranı (%)
+            </label>
+            <div className="relative">
+              <input
+                type="number" min="1" max="99" value={rate}
+                onChange={e => setRate(e.target.value)}
+                placeholder="örn: 20"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-8" />
+              <Percent size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            </div>
+            {/* Canlı önizleme */}
+            {discountedPrice !== null && (
+              <div className="mt-2 flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-3 py-2">
+                <span className="text-xs text-gray-400 line-through">₺{Number(product.price).toFixed(2)}</span>
+                <span className="text-sm font-black text-green-700">₺{discountedPrice.toFixed(2)}</span>
+                <span className="ml-auto text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                  %{rate} indirim
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Başlangıç tarihi */}
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Başlangıç</label>
+            <input type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          {/* Bitiş tarihi */}
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Bitiş</label>
+            <input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          {existingDiscount && (
+            <button onClick={handleRemove} disabled={saving}
+              className="py-2.5 px-4 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition disabled:opacity-50">
+              Kaldır
+            </button>
+          )}
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
+            İptal
+          </button>
+          <button onClick={handleSave} disabled={saving || !rate || !endDate}
+            className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition disabled:opacity-50">
+            {saving ? 'Kaydediliyor...' : existingDiscount ? 'Güncelle' : 'Kaydet'}
+          </button>
         </div>
       </div>
     </div>
@@ -218,7 +365,6 @@ function VariantEditor({ variants, onChange }) {
     next[i] = { ...next[i], [field]: val }
     onChange(next)
   }
-
   return (
     <div className="col-span-1 sm:col-span-2">
       <div className="flex items-center justify-between mb-2">
@@ -231,7 +377,6 @@ function VariantEditor({ variants, onChange }) {
           <Plus size={11} /> Varyant Ekle
         </button>
       </div>
-
       {variants.length === 0 ? (
         <div className="border-2 border-dashed border-gray-200 rounded-xl px-4 py-3 text-center">
           <p className="text-xs text-gray-400">Ek varyant yok — yukarıdaki seçenek etiketi zaten bir seçenek olarak görünür.</p>
@@ -246,14 +391,11 @@ function VariantEditor({ variants, onChange }) {
           </div>
           {variants.map((v, i) => (
             <div key={v.id || v._key || i} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center bg-gray-50 rounded-xl px-3 py-2">
-              <input type="text" value={v.label} onChange={e => update(i, 'label', e.target.value)}
-                placeholder="örn: 2.5L"
+              <input type="text" value={v.label} onChange={e => update(i, 'label', e.target.value)} placeholder="örn: 2.5L"
                 className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
-              <input type="number" value={v.price} onChange={e => update(i, 'price', e.target.value)}
-                placeholder="0.00"
+              <input type="number" value={v.price} onChange={e => update(i, 'price', e.target.value)} placeholder="0.00"
                 className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
-              <input type="number" value={v.stock} onChange={e => update(i, 'stock', e.target.value)}
-                placeholder="0"
+              <input type="number" value={v.stock} onChange={e => update(i, 'stock', e.target.value)} placeholder="0"
                 className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
               <button type="button" onClick={() => remove(i)}
                 className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition">
@@ -268,52 +410,38 @@ function VariantEditor({ variants, onChange }) {
 }
 
 // ─── Ortak Form Alanları ─────────────────────────────────────────────────────
-// Hem add hem edit için kullanılır
 function ProductFormFields({ form, setForm, cats, imageKey }) {
   const f = (key) => (e) => setForm(prev => ({ ...prev, [key]: e.target.value }))
   return (
     <>
-      {/* Ürün adı */}
       <div>
         <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Ürün Adı</label>
         <input type="text" value={form.name} onChange={f('name')}
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
-
-      {/* Seçenek etiketi (base_label) */}
       <div>
         <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">
-          Seçenek Etiketi
-          <span className="text-gray-400 font-normal normal-case tracking-normal ml-1">(zorunlu değil)</span>
+          Seçenek Etiketi <span className="text-gray-400 font-normal normal-case tracking-normal ml-1">(zorunlu değil)</span>
         </label>
-        <input type="text" value={form.base_label} onChange={f('base_label')}
-          placeholder="örn: 750ml, 1L, Standart"
+        <input type="text" value={form.base_label} onChange={f('base_label')} placeholder="örn: 750ml, 1L, Standart"
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         <p className="text-[10px] text-gray-400 mt-1">Ürün detayında seçenek butonu olarak görünür</p>
       </div>
-
-      {/* Fiyat */}
       <div>
         <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Fiyat (₺)</label>
         <input type="number" value={form.price} onChange={f('price')}
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
-
-      {/* Stok */}
       <div>
         <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Stok Adedi</label>
         <input type="number" value={form.stock} onChange={f('stock')}
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
-
-      {/* Açıklama */}
       <div>
         <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Açıklama</label>
         <input type="text" value={form.description} onChange={f('description')}
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
-
-      {/* Kategori */}
       <div>
         <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Kategori</label>
         <select value={form.category} onChange={f('category')}
@@ -321,8 +449,6 @@ function ProductFormFields({ form, setForm, cats, imageKey }) {
           {cats.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
-
-      {/* Görsel */}
       <ImageInput key={imageKey} value={form.image_url} onChange={url => setForm(prev => ({ ...prev, image_url: url }))} />
     </>
   )
@@ -331,6 +457,7 @@ function ProductFormFields({ form, setForm, cats, imageKey }) {
 // ─── Ana Bileşen ─────────────────────────────────────────────────────────────
 export default function Products() {
   const [products, setProducts] = useState([])
+  const [discounts, setDiscounts] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [formVariants, setFormVariants] = useState([])
   const [adding, setAdding] = useState(false)
@@ -340,6 +467,7 @@ export default function Products() {
   const [editVariants, setEditVariants] = useState([])
   const [cats, setCats] = useState([])
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [discountTarget, setDiscountTarget] = useState(null)
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState('Tümü')
   const [sort, setSort] = useState('newest')
@@ -352,8 +480,14 @@ export default function Products() {
     setProducts(data || [])
   }
 
+  const fetchDiscounts = async () => {
+    const { data } = await supabase.from('discounts').select('*').eq('is_active', true)
+    setDiscounts(data || [])
+  }
+
   useEffect(() => {
     fetchProducts()
+    fetchDiscounts()
     supabase.from('categories').select('name').order('name')
       .then(({ data }) => setCats(data?.map(c => c.name) || []))
   }, [])
@@ -387,20 +521,13 @@ export default function Products() {
     const existingIds = existingVariants.map(v => v.id)
     const keepIds = variants.filter(v => v.id).map(v => v.id)
     const deleteIds = existingIds.filter(id => !keepIds.includes(id))
-    if (deleteIds.length > 0) {
-      await supabase.from('product_variants').delete().in('id', deleteIds)
-    }
+    if (deleteIds.length > 0) await supabase.from('product_variants').delete().in('id', deleteIds)
     for (const v of variants) {
       if (!v.label || v.price === '' || v.stock === '') continue
       if (v.id) {
-        await supabase.from('product_variants').update({
-          label: v.label, price: parseFloat(v.price), stock: parseInt(v.stock)
-        }).eq('id', v.id)
+        await supabase.from('product_variants').update({ label: v.label, price: parseFloat(v.price), stock: parseInt(v.stock) }).eq('id', v.id)
       } else {
-        await supabase.from('product_variants').insert({
-          product_id: productId, label: v.label,
-          price: parseFloat(v.price), stock: parseInt(v.stock)
-        })
+        await supabase.from('product_variants').insert({ product_id: productId, label: v.label, price: parseFloat(v.price), stock: parseInt(v.stock) })
       }
     }
   }
@@ -409,13 +536,9 @@ export default function Products() {
     setAdding(true)
     try {
       const { data, error } = await supabase.from('products').insert({
-        name: form.name,
-        price: parseFloat(form.price) || 0,
-        stock: parseInt(form.stock) || 0,
-        base_label: form.base_label || null,
-        description: form.description,
-        category: form.category,
-        image_url: form.image_url || null
+        name: form.name, price: parseFloat(form.price) || 0, stock: parseInt(form.stock) || 0,
+        base_label: form.base_label || null, description: form.description,
+        category: form.category, image_url: form.image_url || null
       }).select().single()
       if (error) throw error
       if (formVariants.length > 0) await saveVariants(data.id, formVariants)
@@ -430,10 +553,7 @@ export default function Products() {
 
   const startEdit = async (p) => {
     setEditId(p.id)
-    setEditForm({
-      name: p.name, price: p.price, stock: p.stock, base_label: p.base_label || '',
-      description: p.description || '', category: p.category || 'Diğer', image_url: p.image_url || ''
-    })
+    setEditForm({ name: p.name, price: p.price, stock: p.stock, base_label: p.base_label || '', description: p.description || '', category: p.category || 'Diğer', image_url: p.image_url || '' })
     const { data } = await supabase.from('product_variants').select('*').eq('product_id', p.id).order('price')
     setEditVariants(data || [])
   }
@@ -442,8 +562,8 @@ export default function Products() {
     const prev = products.find(p => p.id === id)
     await supabase.from('products').update({
       name: editForm.name, price: parseFloat(editForm.price), stock: parseInt(editForm.stock),
-      base_label: editForm.base_label || null,
-      description: editForm.description, category: editForm.category, image_url: editForm.image_url || null
+      base_label: editForm.base_label || null, description: editForm.description,
+      category: editForm.category, image_url: editForm.image_url || null
     }).eq('id', id)
     const { data: existingVars } = await supabase.from('product_variants').select('*').eq('product_id', id)
     await saveVariants(id, editVariants, existingVars || [])
@@ -472,9 +592,7 @@ export default function Products() {
     if (!error) {
       const { data: vars } = await supabase.from('product_variants').select('*').eq('product_id', p.id)
       if (vars && vars.length > 0) {
-        await supabase.from('product_variants').insert(
-          vars.map(v => ({ product_id: data.id, label: v.label, price: v.price, stock: v.stock }))
-        )
+        await supabase.from('product_variants').insert(vars.map(v => ({ product_id: data.id, label: v.label, price: v.price, stock: v.stock })))
       }
       await writeProductLog('urun_kopyalandi', `"${p.name}" kopyalandı`)
       await fetchProducts()
@@ -488,6 +606,14 @@ export default function Products() {
     <div>
       {deleteTarget && <ConfirmModal name={deleteTarget.name} onConfirm={handleDelete} onClose={() => setDeleteTarget(null)} />}
       {showBulkStock && <BulkStockModal selected={selected} products={products} onClose={() => setShowBulkStock(false)} onSave={() => { setSelected([]); fetchProducts() }} />}
+      {discountTarget && (
+        <DiscountModal
+          product={discountTarget}
+          existingDiscount={getActiveDiscount(discounts, discountTarget.id)}
+          onClose={() => setDiscountTarget(null)}
+          onSave={() => { fetchDiscounts(); fetchProducts() }}
+        />
+      )}
 
       {/* Başlık */}
       <div className="flex items-center justify-between mb-4">
@@ -513,9 +639,7 @@ export default function Products() {
           <CategoryDropdown cats={cats} activeCat={activeCat} onChange={setActiveCat} />
           <SortDropdown sort={sort} onChange={setSort} />
           <button onClick={() => setShowCriticalOnly(v => !v)}
-            className={`flex items-center gap-1.5 h-10 px-3 rounded-xl text-xs font-semibold border transition flex-shrink-0 ${
-              showCriticalOnly ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-500'
-            }`}>
+            className={`flex items-center gap-1.5 h-10 px-3 rounded-xl text-xs font-semibold border transition flex-shrink-0 ${showCriticalOnly ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-500'}`}>
             <AlertCircle size={13} />
             <span className="hidden sm:inline">Kritik Stok</span>
             {criticalCount > 0 && (
@@ -541,7 +665,7 @@ export default function Products() {
         </div>
       )}
 
-      {/* ─── Ekleme Formu ─── */}
+      {/* Ekleme Formu */}
       {showForm && (
         <div className="bg-white rounded-xl shadow-sm p-4 mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <ProductFormFields form={form} setForm={setForm} cats={cats} imageKey={showForm ? 'open' : 'closed'} />
@@ -557,7 +681,7 @@ export default function Products() {
         </div>
       )}
 
-      {/* ─── Düzenleme Modalı ─── */}
+      {/* Düzenleme Modalı */}
       {editId && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-5 max-h-[90vh] overflow-y-auto">
@@ -579,7 +703,7 @@ export default function Products() {
         </div>
       )}
 
-      {/* ─── Ürün Listesi ─── */}
+      {/* Ürün Listesi */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -602,36 +726,63 @@ export default function Products() {
             </div>
           ) : filtered.map(p => {
             const isSelected = selected.includes(p.id)
+            const discount = getActiveDiscount(discounts, p.id)
+            const discountedPrice = discount ? calcDiscounted(p.price, discount.rate) : null
+
             return (
               <div key={p.id} className={`flex items-center gap-3 px-4 py-3 transition ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                 <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(p.id)}
                   className="w-4 h-4 rounded accent-blue-600 cursor-pointer flex-shrink-0" />
+
                 <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 bg-blue-50 flex items-center justify-center">
                   {p.image_url ? <img src={optimizeUrl(p.image_url, 80)} alt={p.name} className="w-full h-full object-cover" /> : <span className="text-lg">🪣</span>}
                 </div>
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="font-semibold text-gray-800 text-sm truncate max-w-[140px] sm:max-w-none">{p.name}</p>
+                    <p className="font-semibold text-gray-800 text-sm truncate max-w-[130px] sm:max-w-none">{p.name}</p>
                     {p.base_label && (
                       <span className="text-[10px] bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-full flex-shrink-0">{p.base_label}</span>
                     )}
+                    {discount && (
+                      <span className="text-[10px] bg-green-50 text-green-700 font-bold px-1.5 py-0.5 rounded-full flex-shrink-0">
+                        %{Number(discount.rate).toFixed(0)} İndirim
+                      </span>
+                    )}
                     <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full flex-shrink-0 hidden sm:inline">{p.category || '—'}</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="font-bold text-blue-700 text-sm">₺{Number(p.price).toFixed(2)}</span>
+
+                  {/* Fiyat: kaçtan kaça düştü */}
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    {discountedPrice !== null ? (
+                      <>
+                        <span className="text-xs text-gray-400 line-through">₺{Number(p.price).toFixed(2)}</span>
+                        <span className="font-bold text-green-600 text-sm">₺{discountedPrice.toFixed(2)}</span>
+                      </>
+                    ) : (
+                      <span className="font-bold text-blue-700 text-sm">₺{Number(p.price).toFixed(2)}</span>
+                    )}
                     <span className={`text-xs flex-shrink-0 ${p.stock <= 5 ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>
                       {p.stock} adet {p.stock <= 5 && '⚠️'}
                     </span>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-0.5 flex-shrink-0">
-                  <button onClick={() => startEdit(p)} className="text-blue-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition">
+                  <button onClick={() => startEdit(p)} className="text-blue-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition" title="Düzenle">
                     <Pencil size={14} />
                   </button>
-                  <button onClick={() => handleDuplicate(p)} className="text-gray-400 hover:text-indigo-600 p-1.5 hover:bg-indigo-50 rounded-lg transition hidden sm:flex">
+                  {/* İndirim butonu — aktifse yeşil */}
+                  <button
+                    onClick={() => setDiscountTarget(p)}
+                    className={`p-1.5 rounded-lg transition hidden sm:flex ${discount ? 'text-green-600 hover:text-green-700 hover:bg-green-50' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`}
+                    title={discount ? 'İndirimi Düzenle' : 'İndirim Ekle'}>
+                    <Tag size={14} />
+                  </button>
+                  <button onClick={() => handleDuplicate(p)} className="text-gray-400 hover:text-indigo-600 p-1.5 hover:bg-indigo-50 rounded-lg transition hidden sm:flex" title="Kopyala">
                     <Copy size={14} />
                   </button>
-                  <button onClick={() => setDeleteTarget(p)} className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition">
+                  <button onClick={() => setDeleteTarget(p)} className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition" title="Sil">
                     <Trash2 size={14} />
                   </button>
                 </div>

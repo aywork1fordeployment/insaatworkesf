@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { optimizeUrl } from '../lib/cloudinary'
 import useAuthStore from '../store/authStore'
-import useCartStore from '../store/cartStore'
+import useCartStore, { getCartKey } from '../store/cartStore'
 import Navbar from '../components/Navbar'
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react'
 
@@ -19,33 +19,67 @@ export default function Cart() {
   const handleOrder = async () => {
     setLoading(true)
     try {
-const { data: orderData, error: orderError } = await supabase
-  .from('orders')
-  .insert({
-    user_id: user.id,
-    status: 'pending',
-    total_price: total,
-    customer_note: note || items.map(i => `${i.product.name} x${i.quantity}`).join(', '),
-    order_items: items.map(i => ({ // ← ekle
-      product_id: i.product.id,
-      name: i.product.name,
-      quantity: i.quantity,
-      price: i.product.price
-    }))
-  })
-  .select().single()
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          status: 'pending',
+          total_price: total,
+          customer_note: note || items.map(i => {
+            const label = i.product.variant_label ? ` (${i.product.variant_label})` : ''
+            return `${i.product.name}${label} x${i.quantity}`
+          }).join(', '),
+          order_items: items.map(i => ({
+            product_id: i.product.id,
+            variant_id: i.product.variant_id || null,
+            name: i.product.name,
+            variant_label: i.product.variant_label || null,
+            quantity: i.quantity,
+            price: i.product.price,
+          })),
+        })
+        .select()
+        .single()
+
       if (orderError) throw orderError
 
+      // Stok düşme: varyant varsa product_variants, yoksa products tablosundan
       for (const item of items) {
-        await supabase.from('products')
-          .update({ stock: item.product.stock - item.quantity })
-          .eq('id', item.product.id)
+        if (item.product.variant_id) {
+          // Güncel stoku önce çek, sonra düş (race condition önlemi)
+          const { data: varRow } = await supabase
+            .from('product_variants')
+            .select('stock')
+            .eq('id', item.product.variant_id)
+            .single()
+          if (varRow) {
+            await supabase
+              .from('product_variants')
+              .update({ stock: varRow.stock - item.quantity })
+              .eq('id', item.product.variant_id)
+          }
+        } else {
+          const { data: prodRow } = await supabase
+            .from('products')
+            .select('stock')
+            .eq('id', item.product.id)
+            .single()
+          if (prodRow) {
+            await supabase
+              .from('products')
+              .update({ stock: prodRow.stock - item.quantity })
+              .eq('id', item.product.id)
+          }
+        }
       }
 
       supabase.from('order_logs').insert({
         order_id: orderData.id,
         action: 'siparis_olusturuldu',
-        note: `Yeni sipariş oluşturuldu. Tutar: ₺${total.toFixed(2)} | ${items.map(i => `${i.product.name} x${i.quantity}`).join(', ')}`
+        note: `Yeni sipariş oluşturuldu. Tutar: ₺${total.toFixed(2)} | ${items.map(i => {
+          const label = i.product.variant_label ? ` (${i.product.variant_label})` : ''
+          return `${i.product.name}${label} x${i.quantity}`
+        }).join(', ')}`,
       })
 
       clearCart()
@@ -91,52 +125,67 @@ const { data: orderData, error: orderError } = await supabase
 
             {/* Ürünler */}
             <div className="md:col-span-2 flex flex-col gap-3">
-{items.map(({ product, quantity }) => (
-  <div key={product.id} className="bg-white rounded-2xl border border-slate-100 p-4">
-    <div className="flex gap-4">
-      {/* Görsel */}
-      <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-slate-50 flex items-center justify-center border border-slate-100">
-        {product.image_url ? (
-          <img src={optimizeUrl(product.image_url, 160)} alt={product.name}
-            className="w-full h-full object-contain p-1" />
-        ) : (
-          <span className="text-3xl">🪣</span>
-        )}
-      </div>
+              {items.map(({ product, quantity }) => {
+                const cartKey = getCartKey(product)
+                return (
+                  <div key={cartKey} className="bg-white rounded-2xl border border-slate-100 p-4">
+                    <div className="flex gap-4">
+                      {/* Görsel */}
+                      <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-slate-50 flex items-center justify-center border border-slate-100">
+                        {product.image_url ? (
+                          <img src={optimizeUrl(product.image_url, 160)} alt={product.name}
+                            className="w-full h-full object-contain p-1" />
+                        ) : (
+                          <span className="text-3xl">🪣</span>
+                        )}
+                      </div>
 
-      {/* Bilgi */}
-      <div className="flex-1 min-w-0">
-        <h3 className="font-bold text-slate-900 text-sm line-clamp-2 leading-snug mb-1">{product.name}</h3>
-        <p className="text-blue-600 font-bold text-base">₺{Number(product.price).toFixed(2)}</p>
+                      {/* Bilgi */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-slate-900 text-sm line-clamp-2 leading-snug mb-0.5">
+                          {product.name}
+                        </h3>
 
-        <div className="flex items-center justify-between mt-3">
-          {/* Miktar */}
-          <div className="flex items-center gap-1.5 bg-slate-100 rounded-xl p-1">
-            <button onClick={() => updateQuantity(product.id, quantity - 1)}
-              className="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-500 hover:text-blue-600 transition">
-              <Minus size={12} />
-            </button>
-            <span className="w-6 text-center text-sm font-bold text-slate-900">{quantity}</span>
-            <button onClick={() => updateQuantity(product.id, quantity + 1)}
-              className="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-500 hover:text-blue-600 transition">
-              <Plus size={12} />
-            </button>
-          </div>
+                        {/* Varyant etiketi */}
+                        {product.variant_label && (
+                          <span className="inline-block text-[11px] font-semibold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full mb-1">
+                            {product.variant_label}
+                          </span>
+                        )}
 
-          <div className="flex items-center gap-3">
-            <span className="font-bold text-slate-800">
-              ₺{(Number(product.price) * quantity).toFixed(2)}
-            </span>
-            <button onClick={() => removeItem(product.id)}
-              className="text-slate-300 hover:text-red-400 transition p-1">
-              <Trash2 size={16} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-))}
+                        <p className="text-blue-600 font-bold text-base">
+                          ₺{Number(product.price).toFixed(2)}
+                        </p>
+
+                        <div className="flex items-center justify-between mt-3">
+                          {/* Miktar */}
+                          <div className="flex items-center gap-1.5 bg-slate-100 rounded-xl p-1">
+                            <button onClick={() => updateQuantity(cartKey, quantity - 1)}
+                              className="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-500 hover:text-blue-600 transition">
+                              <Minus size={12} />
+                            </button>
+                            <span className="w-6 text-center text-sm font-bold text-slate-900">{quantity}</span>
+                            <button onClick={() => updateQuantity(cartKey, quantity + 1)}
+                              className="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-500 hover:text-blue-600 transition">
+                              <Plus size={12} />
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-slate-800">
+                              ₺{(Number(product.price) * quantity).toFixed(2)}
+                            </span>
+                            <button onClick={() => removeItem(cartKey)}
+                              className="text-slate-300 hover:text-red-400 transition p-1">
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
 
             {/* Özet */}
