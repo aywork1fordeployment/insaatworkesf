@@ -9,7 +9,7 @@ h1, h2, h3, h4, h5 { font-family: 'Syne', sans-serif; }
 .animate-marquee {
   display: flex !important;
   width: max-content !important;
-  animation: marquee 50s linear infinite; /* 50s yaptık ki çok hızlı olup baş döndürmesin */
+  animation: marquee 60s linear infinite; /* 50s yaptık ki çok hızlı olup baş döndürmesin */
 }
 
 @import "tailwindcss";
