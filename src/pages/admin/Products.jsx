@@ -7,17 +7,15 @@ import {
   Tag, Percent
 } from 'lucide-react'
 
-const emptyForm = { name: '', price: '', stock: '', base_label: '', description: '', category: 'Diğer', image_url: '' }
+const emptyForm = { name: '', price: '', stock: '', base_label: '', description: '', category: '', image_url: '' }
 const emptyVariant = { label: '', price: '', stock: '' }
 
 const writeProductLog = async (action, note) => {
   await supabase.from('order_logs').insert({ order_id: null, action, note })
 }
 
-// İndirimli fiyat hesapla
 const calcDiscounted = (price, rate) => Number(price) * (1 - Number(rate) / 100)
 
-// Bugünkü aktif indirim
 const getActiveDiscount = (discounts, productId) => {
   const now = new Date()
   return discounts.find(d =>
@@ -26,6 +24,16 @@ const getActiveDiscount = (discounts, productId) => {
     new Date(d.start_date) <= now &&
     new Date(d.end_date) >= now
   ) || null
+}
+
+// parent_id null → parent kategori, parent_id var → alt kategori
+function buildCategoryTree(categories) {
+  const parents = categories.filter(c => !c.parent_id)
+  const children = categories.filter(c => c.parent_id)
+  return parents.map(p => ({
+    ...p,
+    children: children.filter(c => c.parent_id === p.id),
+  }))
 }
 
 // ─── Confirm Modal ───────────────────────────────────────────────────────────
@@ -61,32 +69,18 @@ function DiscountModal({ product, existingDiscount, onClose, onSave }) {
     existingDiscount?.end_date ? existingDiscount.end_date.slice(0, 16) : ''
   )
   const [saving, setSaving] = useState(false)
-
   const discountedPrice = rate ? calcDiscounted(product.price, rate) : null
 
   const handleSave = async () => {
     if (!rate || !endDate) return
     setSaving(true)
     if (existingDiscount) {
-      await supabase.from('discounts').update({
-        rate: parseFloat(rate),
-        start_date: startDate,
-        end_date: endDate,
-        is_active: true,
-      }).eq('id', existingDiscount.id)
+      await supabase.from('discounts').update({ rate: parseFloat(rate), start_date: startDate, end_date: endDate, is_active: true }).eq('id', existingDiscount.id)
     } else {
-      await supabase.from('discounts').insert({
-        product_id: product.id,
-        rate: parseFloat(rate),
-        start_date: startDate,
-        end_date: endDate,
-        is_active: true,
-      })
+      await supabase.from('discounts').insert({ product_id: product.id, rate: parseFloat(rate), start_date: startDate, end_date: endDate, is_active: true })
     }
     await writeProductLog('indirim_eklendi', `"${product.name}" için %${rate} indirim tanımlandı`)
-    setSaving(false)
-    onSave()
-    onClose()
+    setSaving(false); onSave(); onClose()
   }
 
   const handleRemove = async () => {
@@ -94,85 +88,57 @@ function DiscountModal({ product, existingDiscount, onClose, onSave }) {
     setSaving(true)
     await supabase.from('discounts').update({ is_active: false }).eq('id', existingDiscount.id)
     await writeProductLog('indirim_kaldirildi', `"${product.name}" indirimi kaldırıldı`)
-    setSaving(false)
-    onSave()
-    onClose()
+    setSaving(false); onSave(); onClose()
   }
 
   return (
     <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-bold text-gray-900 flex items-center gap-2">
-            <Tag size={16} className="text-blue-600" /> İndirim Tanımla
-          </h3>
+          <h3 className="font-bold text-gray-900 flex items-center gap-2"><Tag size={16} className="text-blue-600" /> İndirim Tanımla</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
-
-        {/* Ürün özeti */}
         <div className="bg-gray-50 rounded-xl p-3 mb-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
-            {product.image_url
-              ? <img src={optimizeUrl(product.image_url, 80)} alt="" className="w-full h-full object-cover" />
-              : <span className="text-lg">🪣</span>}
+            {product.image_url ? <img src={optimizeUrl(product.image_url, 80)} alt="" className="w-full h-full object-cover" /> : <span className="text-lg">🪣</span>}
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-gray-800 text-sm truncate">{product.name}</p>
             <p className="text-blue-700 font-bold text-sm">₺{Number(product.price).toFixed(2)}</p>
           </div>
         </div>
-
         <div className="flex flex-col gap-3 mb-5">
-          {/* İndirim oranı */}
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">
-              İndirim Oranı (%)
-            </label>
+            <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">İndirim Oranı (%)</label>
             <div className="relative">
-              <input
-                type="number" min="1" max="99" value={rate}
-                onChange={e => setRate(e.target.value)}
-                placeholder="örn: 20"
+              <input type="number" min="1" max="99" value={rate} onChange={e => setRate(e.target.value)} placeholder="örn: 20"
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-8" />
               <Percent size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
-            {/* Canlı önizleme */}
             {discountedPrice !== null && (
               <div className="mt-2 flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-3 py-2">
                 <span className="text-xs text-gray-400 line-through">₺{Number(product.price).toFixed(2)}</span>
                 <span className="text-sm font-black text-green-700">₺{discountedPrice.toFixed(2)}</span>
-                <span className="ml-auto text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-                  %{rate} indirim
-                </span>
+                <span className="ml-auto text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">%{rate} indirim</span>
               </div>
             )}
           </div>
-
-          {/* Başlangıç tarihi */}
           <div>
             <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Başlangıç</label>
             <input type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)}
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
-
-          {/* Bitiş tarihi */}
           <div>
             <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Bitiş</label>
             <input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)}
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
         </div>
-
         <div className="flex gap-2">
           {existingDiscount && (
-            <button onClick={handleRemove} disabled={saving}
-              className="py-2.5 px-4 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition disabled:opacity-50">
-              Kaldır
-            </button>
+            <button onClick={handleRemove} disabled={saving} className="py-2.5 px-4 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition disabled:opacity-50">Kaldır</button>
           )}
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
-            İptal
-          </button>
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">İptal</button>
           <button onClick={handleSave} disabled={saving || !rate || !endDate}
             className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition disabled:opacity-50">
             {saving ? 'Kaydediliyor...' : existingDiscount ? 'Güncelle' : 'Kaydet'}
@@ -242,8 +208,8 @@ function BulkStockModal({ selected, products, onClose, onSave }) {
   )
 }
 
-// ─── Category Dropdown ───────────────────────────────────────────────────────
-function CategoryDropdown({ cats, activeCat, onChange }) {
+// ─── Category Dropdown (filtre — grouped) ────────────────────────────────────
+function CategoryDropdown({ categoryTree, activeCat, onChange }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   useEffect(() => {
@@ -251,7 +217,7 @@ function CategoryDropdown({ cats, activeCat, onChange }) {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
-  const options = ['Tümü', ...cats]
+
   return (
     <div className="relative flex-1 min-w-0" ref={ref}>
       <button onClick={() => setOpen(o => !o)}
@@ -260,13 +226,35 @@ function CategoryDropdown({ cats, activeCat, onChange }) {
         <ChevronDown size={14} className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute left-0 top-[calc(100%+6px)] w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 overflow-hidden">
-          {options.map(cat => (
-            <button key={cat} onClick={() => { onChange(cat); setOpen(false) }}
-              className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition ${activeCat === cat ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>
-              {cat === 'Tümü' ? 'Tüm Kategoriler' : cat}
-              {activeCat === cat && <Check size={13} className="text-blue-600" />}
-            </button>
+        <div className="absolute left-0 top-[calc(100%+6px)] w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 overflow-hidden max-h-72 overflow-y-auto">
+          {/* Tümü */}
+          <button onClick={() => { onChange('Tümü'); setOpen(false) }}
+            className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition ${activeCat === 'Tümü' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>
+            Tüm Kategoriler
+            {activeCat === 'Tümü' && <Check size={13} className="text-blue-600" />}
+          </button>
+
+          {categoryTree.map(parent => (
+            <div key={parent.id}>
+              {/* Parent başlık — seçilemiyor, sadece ayırıcı */}
+              <div className="px-4 pt-3 pb-1 flex items-center gap-2 select-none pointer-events-none">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{parent.name}</span>
+                <div className="flex-1 h-px bg-gray-100" />
+              </div>
+              {/* Alt kategoriler */}
+              {parent.children.length === 0 ? (
+                <p className="px-5 py-1.5 text-xs text-gray-300 italic">Alt kategori yok</p>
+              ) : parent.children.map(child => (
+                <button key={child.id} onClick={() => { onChange(child.name); setOpen(false) }}
+                  className={`w-full flex items-center justify-between px-5 py-2 text-sm transition ${activeCat === child.name ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-gray-300 text-xs">└</span>
+                    {child.name}
+                  </span>
+                  {activeCat === child.name && <Check size={13} className="text-blue-600" />}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       )}
@@ -361,9 +349,7 @@ function VariantEditor({ variants, onChange }) {
   const add = () => onChange([...variants, { ...emptyVariant, _key: Date.now() }])
   const remove = (i) => onChange(variants.filter((_, idx) => idx !== i))
   const update = (i, field, val) => {
-    const next = [...variants]
-    next[i] = { ...next[i], [field]: val }
-    onChange(next)
+    const next = [...variants]; next[i] = { ...next[i], [field]: val }; onChange(next)
   }
   return (
     <div className="col-span-1 sm:col-span-2">
@@ -397,8 +383,7 @@ function VariantEditor({ variants, onChange }) {
                 className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
               <input type="number" value={v.stock} onChange={e => update(i, 'stock', e.target.value)} placeholder="0"
                 className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
-              <button type="button" onClick={() => remove(i)}
-                className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition">
+              <button type="button" onClick={() => remove(i)} className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition">
                 <Trash2 size={13} />
               </button>
             </div>
@@ -409,8 +394,32 @@ function VariantEditor({ variants, onChange }) {
   )
 }
 
+// ─── Kategori Select — optgroup ile grouped ──────────────────────────────────
+// Parent adı optgroup label olarak çıkar (seçilemiyor), altındaki sub'lar seçilebilir
+function CategorySelect({ value, onChange, categoryTree }) {
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+    >
+      <option value="" disabled>— Kategori seç —</option>
+      {categoryTree.map(parent => (
+        <optgroup key={parent.id} label={`▸ ${parent.name}`}>
+          {parent.children.length === 0
+            ? <option disabled value="">Alt kategori yok</option>
+            : parent.children.map(child => (
+                <option key={child.id} value={child.name}>{child.name}</option>
+              ))
+          }
+        </optgroup>
+      ))}
+    </select>
+  )
+}
+
 // ─── Ortak Form Alanları ─────────────────────────────────────────────────────
-function ProductFormFields({ form, setForm, cats, imageKey }) {
+function ProductFormFields({ form, setForm, categoryTree, imageKey }) {
   const f = (key) => (e) => setForm(prev => ({ ...prev, [key]: e.target.value }))
   return (
     <>
@@ -444,10 +453,11 @@ function ProductFormFields({ form, setForm, cats, imageKey }) {
       </div>
       <div>
         <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Kategori</label>
-        <select value={form.category} onChange={f('category')}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-          {cats.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+        <CategorySelect
+          value={form.category}
+          onChange={val => setForm(prev => ({ ...prev, category: val }))}
+          categoryTree={categoryTree}
+        />
       </div>
       <ImageInput key={imageKey} value={form.image_url} onChange={url => setForm(prev => ({ ...prev, image_url: url }))} />
     </>
@@ -458,6 +468,8 @@ function ProductFormFields({ form, setForm, cats, imageKey }) {
 export default function Products() {
   const [products, setProducts] = useState([])
   const [discounts, setDiscounts] = useState([])
+  const [allCategories, setAllCategories] = useState([])  // [{id, name, parent_id}]
+  const [categoryTree, setCategoryTree] = useState([])    // [{id, name, children:[]}]
   const [form, setForm] = useState(emptyForm)
   const [formVariants, setFormVariants] = useState([])
   const [adding, setAdding] = useState(false)
@@ -465,7 +477,6 @@ export default function Products() {
   const [editId, setEditId] = useState(null)
   const [editForm, setEditForm] = useState({})
   const [editVariants, setEditVariants] = useState([])
-  const [cats, setCats] = useState([])
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [discountTarget, setDiscountTarget] = useState(null)
   const [search, setSearch] = useState('')
@@ -485,11 +496,18 @@ export default function Products() {
     setDiscounts(data || [])
   }
 
+  const fetchCategories = async () => {
+    // id ve parent_id'yi de çekiyoruz
+    const { data } = await supabase.from('categories').select('id, name, parent_id').order('name')
+    const cats = data || []
+    setAllCategories(cats)
+    setCategoryTree(buildCategoryTree(cats))
+  }
+
   useEffect(() => {
     fetchProducts()
     fetchDiscounts()
-    supabase.from('categories').select('name').order('name')
-      .then(({ data }) => setCats(data?.map(c => c.name) || []))
+    fetchCategories()
   }, [])
 
   const criticalCount = products.filter(p => p.stock <= 5).length
@@ -538,7 +556,7 @@ export default function Products() {
       const { data, error } = await supabase.from('products').insert({
         name: form.name, price: parseFloat(form.price) || 0, stock: parseInt(form.stock) || 0,
         base_label: form.base_label || null, description: form.description,
-        category: form.category, image_url: form.image_url || null
+        category: form.category || 'Diğer', image_url: form.image_url || null
       }).select().single()
       if (error) throw error
       if (formVariants.length > 0) await saveVariants(data.id, formVariants)
@@ -553,7 +571,10 @@ export default function Products() {
 
   const startEdit = async (p) => {
     setEditId(p.id)
-    setEditForm({ name: p.name, price: p.price, stock: p.stock, base_label: p.base_label || '', description: p.description || '', category: p.category || 'Diğer', image_url: p.image_url || '' })
+    setEditForm({
+      name: p.name, price: p.price, stock: p.stock, base_label: p.base_label || '',
+      description: p.description || '', category: p.category || '', image_url: p.image_url || ''
+    })
     const { data } = await supabase.from('product_variants').select('*').eq('product_id', p.id).order('price')
     setEditVariants(data || [])
   }
@@ -563,7 +584,7 @@ export default function Products() {
     await supabase.from('products').update({
       name: editForm.name, price: parseFloat(editForm.price), stock: parseInt(editForm.stock),
       base_label: editForm.base_label || null, description: editForm.description,
-      category: editForm.category, image_url: editForm.image_url || null
+      category: editForm.category || 'Diğer', image_url: editForm.image_url || null
     }).eq('id', id)
     const { data: existingVars } = await supabase.from('product_variants').select('*').eq('product_id', id)
     await saveVariants(id, editVariants, existingVars || [])
@@ -636,7 +657,7 @@ export default function Products() {
             className="w-full h-10 pl-10 pr-9 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
         </div>
         <div className="flex gap-2">
-          <CategoryDropdown cats={cats} activeCat={activeCat} onChange={setActiveCat} />
+          <CategoryDropdown categoryTree={categoryTree} activeCat={activeCat} onChange={setActiveCat} />
           <SortDropdown sort={sort} onChange={setSort} />
           <button onClick={() => setShowCriticalOnly(v => !v)}
             className={`flex items-center gap-1.5 h-10 px-3 rounded-xl text-xs font-semibold border transition flex-shrink-0 ${showCriticalOnly ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-500'}`}>
@@ -659,16 +680,14 @@ export default function Products() {
             className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
             <PackagePlus size={13} /> Stok Güncelle
           </button>
-          <button onClick={() => setSelected([])} className="p-1.5 hover:bg-white/20 rounded-lg transition">
-            <X size={15} />
-          </button>
+          <button onClick={() => setSelected([])} className="p-1.5 hover:bg-white/20 rounded-lg transition"><X size={15} /></button>
         </div>
       )}
 
       {/* Ekleme Formu */}
       {showForm && (
         <div className="bg-white rounded-xl shadow-sm p-4 mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <ProductFormFields form={form} setForm={setForm} cats={cats} imageKey={showForm ? 'open' : 'closed'} />
+          <ProductFormFields form={form} setForm={setForm} categoryTree={categoryTree} imageKey={showForm ? 'open' : 'closed'} />
           <VariantEditor variants={formVariants} onChange={setFormVariants} />
           <div className="col-span-1 sm:col-span-2 flex gap-2">
             <button onClick={handleAdd} disabled={adding}
@@ -690,7 +709,7 @@ export default function Products() {
               <button onClick={() => { setEditId(null); setEditVariants([]) }} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <ProductFormFields form={editForm} setForm={setEditForm} cats={cats} imageKey={editId} />
+              <ProductFormFields form={editForm} setForm={setEditForm} categoryTree={categoryTree} imageKey={editId} />
               <VariantEditor variants={editVariants} onChange={setEditVariants} />
               <div className="col-span-1 sm:col-span-2 flex gap-2 mt-1">
                 <button onClick={() => handleUpdate(editId)}
@@ -729,6 +748,12 @@ export default function Products() {
             const discount = getActiveDiscount(discounts, p.id)
             const discountedPrice = discount ? calcDiscounted(p.price, discount.rate) : null
 
+            // Ürün listesinde kategoriyi "Parent › Sub" olarak göster
+            const parentCat = allCategories.find(c =>
+              !c.parent_id &&
+              allCategories.some(sub => sub.parent_id === c.id && sub.name === p.category)
+            )
+
             return (
               <div key={p.id} className={`flex items-center gap-3 px-4 py-3 transition ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                 <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(p.id)}
@@ -749,10 +774,12 @@ export default function Products() {
                         %{Number(discount.rate).toFixed(0)} İndirim
                       </span>
                     )}
-                    <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full flex-shrink-0 hidden sm:inline">{p.category || '—'}</span>
+                    {p.category && (
+                      <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full flex-shrink-0 hidden sm:inline">
+                        {parentCat ? `${parentCat.name} › ${p.category}` : p.category}
+                      </span>
+                    )}
                   </div>
-
-                  {/* Fiyat: kaçtan kaça düştü */}
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     {discountedPrice !== null ? (
                       <>
@@ -772,9 +799,7 @@ export default function Products() {
                   <button onClick={() => startEdit(p)} className="text-blue-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition" title="Düzenle">
                     <Pencil size={14} />
                   </button>
-                  {/* İndirim butonu — aktifse yeşil */}
-                  <button
-                    onClick={() => setDiscountTarget(p)}
+                  <button onClick={() => setDiscountTarget(p)}
                     className={`p-1.5 rounded-lg transition hidden sm:flex ${discount ? 'text-green-600 hover:text-green-700 hover:bg-green-50' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`}
                     title={discount ? 'İndirimi Düzenle' : 'İndirim Ekle'}>
                     <Tag size={14} />
