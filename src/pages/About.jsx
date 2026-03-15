@@ -17,7 +17,7 @@ export default function About() {
           </div>
 <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight mb-6 tracking-tight">
             ESF Yapı & İnşaat<br />
-            <span className="text-blue-400">Kim Biz?</span>
+            <span className="text-blue-400">Biz Kimiz?</span>
           </h1>
           <p className="text-blue-200/70 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
             Permolit Boya'nın Doğu Anadolu Bölge Bayii olarak Erzurum ve çevresine profesyonel boya ve yapı malzemeleri sunuyoruz.

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Plus, Trash2, Pencil, Eye, EyeOff, Check, AlertTriangle, Tag, Package } from 'lucide-react'
+import { uploadImage, optimizeUrl } from '../../lib/cloudinary'
+import { Plus, Trash2, Pencil, Eye, EyeOff, Check, AlertTriangle, Tag, Package, Building2, Upload, X } from 'lucide-react'
 
 const emptyForm = {
   title: '', highlight: '', description: '', badge: '',
   sort_order: 0, is_active: true,
   product_id: '',
+  brand_logo_url: '', // ← YENİ: Firma logosu
 }
 
 function ConfirmModal({ onConfirm, onClose }) {
@@ -30,9 +32,25 @@ function ConfirmModal({ onConfirm, onClose }) {
 
 function SlideForm({ initial, onSave, onCancel, saving, products }) {
   const [form, setForm] = useState(initial)
+  const [logoMode, setLogoMode] = useState('url') // 'url' veya 'upload'
+  const [uploadingLogo, setUploadingLogo] = useState(false)
   const f = (key) => (e) => setForm(prev => ({ ...prev, [key]: e.target.value }))
 
   const selectedProduct = products.find(p => String(p.id) === String(form.product_id))
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    
+    setUploadingLogo(true)
+    try {
+      const url = await uploadImage(file)
+      setForm(prev => ({ ...prev, brand_logo_url: url }))
+    } catch (err) {
+      alert('Logo yüklenemedi: ' + err.message)
+    }
+    setUploadingLogo(false)
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-5">
@@ -76,6 +94,129 @@ function SlideForm({ initial, onSave, onCancel, saving, products }) {
           <input type="number" value={form.sort_order} onChange={f('sort_order')} placeholder="0"
             className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <p className="text-[10px] text-gray-400 mt-1">Küçük sayı = öne çıkar</p>
+        </div>
+
+        {/* ─── YENİ: Firma Logosu ─── */}
+        <div className="sm:col-span-2">
+          <div className="border border-purple-100 bg-purple-50/40 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Building2 size={14} className="text-purple-500" />
+              <span className="text-xs font-bold text-purple-700 uppercase tracking-wide">Firma/Marka Logosu</span>
+              <span className="text-[10px] text-purple-400">(isteğe bağlı)</span>
+            </div>
+
+            <div className="space-y-3">
+              {/* Logo yükleme modu seçimi */}
+              <div className="flex gap-2 mb-2">
+                <button 
+                  type="button" 
+                  onClick={() => setLogoMode('url')} 
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${logoMode === 'url' ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+                  URL ile
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setLogoMode('upload')} 
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${logoMode === 'upload' ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+                  Dosya Yükle
+                </button>
+              </div>
+
+              {/* Logo girişi */}
+              <div>
+                {logoMode === 'url' ? (
+                  <>
+                    <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Logo URL</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={form.brand_logo_url}
+                        onChange={f('brand_logo_url')}
+                        placeholder="https://example.com/permolit-logo.png"
+                        className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                      {form.brand_logo_url && (
+                        <button
+                          type="button"
+                          onClick={() => setForm(prev => ({ ...prev, brand_logo_url: '' }))}
+                          className="px-3 py-2 rounded-xl border border-gray-200 text-gray-400 hover:text-red-500 hover:bg-red-50 transition">
+                          <X size={16} />
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      Permolit, Marshall, Filli Boya gibi firmaların logolarını ekleyebilirsin
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Logo Dosyası</label>
+                    <label className={`flex items-center justify-center gap-2 border-2 border-dashed rounded-xl px-3 py-4 cursor-pointer transition ${uploadingLogo ? 'border-purple-300 bg-purple-50' : 'border-purple-200 hover:border-purple-300 hover:bg-purple-50'}`}>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={handleLogoUpload} 
+                        disabled={uploadingLogo} 
+                      />
+                      {uploadingLogo
+                        ? <span className="text-sm text-purple-600 font-medium flex items-center gap-2">
+                            <span className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+                            Yükleniyor...
+                          </span>
+                        : <span className="text-sm text-gray-500 flex items-center gap-2">
+                            <Upload size={16} className="text-purple-500" /> 
+                            Logo seç veya sürükle
+                          </span>
+                      }
+                    </label>
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      PNG, JPG veya SVG formatında yükleyebilirsin
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* Logo önizleme */}
+              {form.brand_logo_url && (
+                <div className="bg-white border border-purple-100 rounded-xl p-3">
+                  <p className="text-[10px] font-semibold text-purple-600 uppercase tracking-wide mb-2">Logo Önizleme</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-16 bg-white border-2 border-purple-100 rounded-xl flex items-center justify-center p-2 flex-shrink-0">
+                      <img
+                        src={optimizeUrl(form.brand_logo_url, 120)}
+                        alt="Firma Logosu"
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextElementSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div className="hidden items-center justify-center w-full h-full text-xs text-gray-400">
+                        ❌ Yüklenemedi
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-gray-700">Slide'da bu logo gösterilecek</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">Sağ üst köşede veya başlığın yanında</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Bilgi notu */}
+              <div className="flex items-start gap-2.5 bg-purple-50 border border-purple-200 rounded-xl px-4 py-3">
+                <Building2 size={14} className="text-purple-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-purple-700">Ne zaman kullanılır?</p>
+                  <p className="text-[11px] text-purple-600 mt-0.5 leading-relaxed">
+                    <strong>Permolit Boya Doğu Anadolu Bayii</strong>, <strong>Marshall Boya İşbirliği</strong> 
+                    gibi slide'larda ilgili firmanın logosunu ekleyerek profesyonel bir görünüm kazandır.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* ─── Ürün Bağlantısı ─── */}
@@ -158,21 +299,46 @@ function SlideForm({ initial, onSave, onCancel, saving, products }) {
       {/* Önizleme */}
       <div className="mt-4 rounded-xl overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 p-6">
         <p className="text-[9px] text-blue-400/60 uppercase tracking-widest mb-3 font-bold">Önizleme</p>
-        <div className="flex items-start gap-3 flex-wrap mb-3">
-          {form.badge && (
-            <div className="inline-flex items-center gap-1.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest">
-              ⚡ {form.badge}
+        
+        {/* Logo + Badge */}
+        <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
+          {/* Badge */}
+          <div className="flex-1">
+            {form.badge && (
+              <div className="inline-flex items-center gap-1.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest">
+                ⚡ {form.badge}
+              </div>
+            )}
+          </div>
+          
+          {/* Firma Logosu */}
+          {form.brand_logo_url && (
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-2 flex-shrink-0">
+              <img
+                src={optimizeUrl(form.brand_logo_url, 150)}
+                alt="Firma Logosu"
+                className="h-12 w-auto max-w-[120px] object-contain"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
             </div>
           )}
         </div>
+
+        {/* Başlık */}
         <div className="text-2xl font-black leading-tight">
           <span className="text-white">{form.title || 'Başlık'}</span>
           <br />
           <span className="text-blue-400">{form.highlight || 'Vurgu Metin'}</span>
         </div>
+        
+        {/* Açıklama */}
         {form.description && (
           <p className="text-blue-200/60 text-xs mt-2 max-w-sm leading-relaxed">{form.description}</p>
         )}
+        
+        {/* Ürün butonu */}
         {selectedProduct && (
           <div className="mt-3 inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-lg">
             <Package size={11} /> Hemen Al →
@@ -225,7 +391,8 @@ export default function SliderYonetimi() {
     sort_order: parseInt(form.sort_order) || 0,
     is_active: form.is_active,
     product_id: form.product_id ? parseInt(form.product_id) : null,
-    discount_text: null, // artık kullanılmıyor, Products'tan geliyor
+    brand_logo_url: form.brand_logo_url || null, // ← YENİ
+    discount_text: null,
   })
 
   const handleAdd = async (form) => {
@@ -255,6 +422,7 @@ export default function SliderYonetimi() {
     setEditInitial({
       ...slide,
       product_id: slide.product_id ? String(slide.product_id) : '',
+      brand_logo_url: slide.brand_logo_url || '', // ← YENİ
     })
     setShowForm(false)
   }
@@ -311,6 +479,18 @@ export default function SliderYonetimi() {
                   <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 flex-shrink-0">
                     {i + 1}
                   </div>
+
+                  {/* Firma Logosu (küçük önizleme) */}
+                  {slide.brand_logo_url && (
+                    <div className="w-10 h-10 bg-purple-50 border border-purple-100 rounded-lg flex items-center justify-center p-1 flex-shrink-0">
+                      <img
+                        src={optimizeUrl(slide.brand_logo_url, 80)}
+                        alt="Logo"
+                        className="w-full h-full object-contain"
+                        onError={(e) => { e.target.style.display = 'none' }}
+                      />
+                    </div>
+                  )}
 
                   {/* İçerik */}
                   <div className="flex-1 min-w-0">

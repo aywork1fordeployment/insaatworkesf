@@ -93,8 +93,17 @@ export default function Footer() {
                 <Phone size={14} className="text-blue-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-0.5 font-medium uppercase tracking-wide">Telefon</p>
+                <p className="text-xs text-slate-500 mb-0.5 font-medium uppercase tracking-wide">I. Telefon</p>
                 <a href="tel:+90" className="text-sm text-slate-400 hover:text-white transition">+90 (532) 358 17 92</a>
+              </div>
+            </div>
+                    <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Phone size={14} className="text-blue-400" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 mb-0.5 font-medium uppercase tracking-wide">II. Telefon</p>
+                <a href="tel:+90" className="text-sm text-slate-400 hover:text-white transition">+90 (533) 053 95 35</a>
               </div>
             </div>
             <div className="flex items-start gap-3">

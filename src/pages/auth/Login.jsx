@@ -1,19 +1,37 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNavigate, Link } from 'react-router-dom'
 import { Eye, EyeOff, LogIn } from 'lucide-react'
+import useAuthStore from '../../store/authStore'
 
 export default function Login() {
   const navigate = useNavigate()
+  const { blocked } = useAuthStore()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [showPass, setShowPass] = useState(false)
   const [form, setForm] = useState({ email: '', password: '' })
 
+  useEffect(() => {
+    const wasBlocked = localStorage.getItem('esf-blocked')
+    if (wasBlocked) {
+      setError('Hesabınız engellenmiştir. Daha fazla bilgi için mağazayla iletişime geçin.')
+      localStorage.removeItem('esf-blocked')
+    }
+  }, [])
+
+  useEffect(() => {
+    if (blocked) {
+      setError('Hesabınız engellenmiştir. Daha fazla bilgi için mağazayla iletişime geçin.')
+    }
+  }, [blocked])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
+
+    useAuthStore.setState({ signingIn: true, blocked: false })
 
     const { data: authData, error: loginError } = await supabase.auth.signInWithPassword({
       email: form.email,
@@ -21,14 +39,32 @@ export default function Login() {
     })
 
     if (loginError) {
+      useAuthStore.setState({ signingIn: false })
       setError('Email veya şifre hatalı.')
       setLoading(false)
       return
     }
 
     const { data: profile } = await supabase
-      .from('profiles').select('role').eq('id', authData.user.id).single()
+      .from('profiles').select('role, is_blocked').eq('id', authData.user.id).maybeSingle()
 
+   if (profile?.is_blocked) {
+      await supabase.auth.signOut()
+      localStorage.setItem('esf-blocked', '1')
+      useAuthStore.setState({ signingIn: false, blocked: true })
+      setError('Hesabınız engellenmiştir. Daha fazla bilgi için mağazayla iletişime geçin.')
+      setLoading(false)
+      return
+    }
+
+    useAuthStore.setState({
+      signingIn: false,
+      user: authData.user,
+      profile: profile,
+      loading: false,
+      blocked: false,
+    })
+    setLoading(false)
     navigate(profile?.role === 'admin' ? '/admin/dashboard' : '/')
   }
 
@@ -36,14 +72,13 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
 
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur rounded-2xl mb-4 shadow-lg">
             <img src="/logo.png" alt="ESF" className="w-10 h-10 object-contain rounded-xl"
               onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='block' }} />
             <span className="hidden text-white font-black text-2xl">E</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">ESF Yapı &  İnşaat</h1>
+          <h1 className="text-2xl font-bold text-white">ESF Yapı & İnşaat</h1>
           <p className="text-blue-300 text-sm mt-1">Hesabınıza giriş yapın</p>
         </div>
 
@@ -76,11 +111,10 @@ export default function Login() {
 
             <button onClick={handleSubmit} disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-50 flex items-center justify-center gap-2 mt-1">
-              {loading ? (
-                <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              ) : (
-                <><LogIn size={16} /> Giriş Yap</>
-              )}
+              {loading
+                ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                : <><LogIn size={16} /> Giriş Yap</>
+              }
             </button>
           </div>
 
@@ -91,7 +125,6 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Misafir devam et */}
           <div className="mt-3 text-center">
             <Link to="/" className="text-xs text-gray-400 hover:text-gray-600 transition">
               Giriş yapmadan ürünlere göz at →

@@ -25,10 +25,7 @@ export default function Cart() {
           user_id: user.id,
           status: 'pending',
           total_price: total,
-          customer_note: note || items.map(i => {
-            const label = i.product.variant_label ? ` (${i.product.variant_label})` : ''
-            return `${i.product.name}${label} x${i.quantity}`
-          }).join(', '),
+          customer_note: note || null,
           order_items: items.map(i => ({
             product_id: i.product.id,
             variant_id: i.product.variant_id || null,
