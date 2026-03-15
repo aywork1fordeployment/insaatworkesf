@@ -19,7 +19,7 @@ function DiscountSlide({ slide, product, discount, onScroll }) {
   const discountLabel = `%${discountRate.toFixed(0)} İndirim`
 
   return (
-    <div className="relative w-full overflow-hidden" style={{ minHeight: '520px', background: '#020c24' }}>
+    <div className="relative w-full overflow-hidden" style={{ height: '680px', background: '#020c24' }}>
 
       {/* indirim.png — tam alan, çok düşük opacity, sadece doku */}
       <img
@@ -43,46 +43,47 @@ function DiscountSlide({ slide, product, discount, onScroll }) {
         style={{ background: 'linear-gradient(100deg, rgba(2,12,36,0.95) 0%, rgba(2,12,36,0.75) 42%, rgba(2,12,36,0.1) 68%, transparent 100%)' }} />
 
       {/* İçerik wrapper */}
-<div className="relative z-10 max-w-7xl mx-auto flex items-center px-5 md:px-10 py-8 pb-20 lg:py-12 lg:pb-12" style={{ minHeight: '520px' }}>
+<div className="relative z-10 max-w-7xl mx-auto flex items-center h-full px-5 md:px-10 py-8 pb-20 lg:py-12 lg:pb-12">
 <div className="flex flex-col lg:flex-row items-start lg:items-center w-full gap-4 lg:gap-16">
           {/* ── MOBİL ÜSTTE: ürün görseli ── */}
-          {product && (
-<div className="lg:hidden flex items-center justify-center w-full pt-2 order-first">
-              <div
-                onClick={() => navigate(`/urun/${product.id}`)}
-                className="relative cursor-pointer flex items-center justify-center"
-                style={{ width: '230px', height: '230px' }}>
-                {/* glow */}
-                <div className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.35) 0%, transparent 70%)' }} />
-                {product.image_url ? (
-                  <img
-                    src={optimizeUrl(product.image_url, 400)}
-                    alt={product.name}
-                    className="w-full h-full object-contain relative z-10"
-                    style={{ filter: 'drop-shadow(0 0 24px rgba(59,130,246,0.75)) drop-shadow(0 6px 20px rgba(0,0,40,0.9))' }}
-                  />
-                ) : (
-                  <span className="text-7xl relative z-10" style={{ filter: 'drop-shadow(0 0 24px rgba(59,130,246,0.75))' }}>🪣</span>
-                )}
-                {/* indirim rozeti */}
-                <div className="absolute -top-2 -right-2 z-20 bg-blue-600 text-white font-black text-[10px] px-2 py-1 rounded-xl shadow-lg"
-                  style={{ transform: 'rotate(7deg)' }}>
-                  {discountLabel}
-                </div>
-                {product.stock === 0 && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-black/40">
-                    <span className="text-white font-bold text-xs bg-red-500 px-2.5 py-1 rounded-xl">Stok Yok</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+   {product && (
+  <div className="lg:hidden flex flex-col items-center justify-center w-full pt-2 order-first">
+    <div
+      onClick={() => navigate(`/urun/${product.id}`)}
+      className="relative cursor-pointer flex items-center justify-center"
+      style={{ width: '160px', height: '160px' }}>
+      <div className="absolute inset-0 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.35) 0%, transparent 70%)' }} />
+      {product.image_url ? (
+        <img
+          src={optimizeUrl(product.image_url, 400)}
+          alt={product.name}
+          className="w-full h-full object-contain relative z-10"
+          style={{ filter: 'drop-shadow(0 0 24px rgba(59,130,246,0.75)) drop-shadow(0 6px 20px rgba(0,0,40,0.9))' }}
+        />
+      ) : (
+        <span className="text-7xl relative z-10" style={{ filter: 'drop-shadow(0 0 24px rgba(59,130,246,0.75))' }}>🪣</span>
+      )}
+      <div className="absolute -top-2 -right-2 z-20 bg-blue-600 text-white font-black text-[10px] px-2 py-1 rounded-xl shadow-lg"
+        style={{ transform: 'rotate(7deg)' }}>
+        {discountLabel}
+      </div>
+      {product.stock === 0 && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-black/40">
+          <span className="text-white font-bold text-xs bg-red-500 px-2.5 py-1 rounded-xl">Stok Yok</span>
+        </div>
+      )}
+    </div>
+    <div className="text-center mt-1">
+      <span className="text-white text-xs font-bold line-clamp-1">{product.name}</span>
+    </div>
+  </div>
+)}
 
           {/* ── SOL: metin ── */}
           <div className="flex-1 max-w-xl w-full">
 
-            <div className="flex items-center gap-2 flex-wrap mb-6">
+<div className="flex items-center gap-2 flex-wrap mb-2 lg:mb-6">
               <span className="inline-flex items-center gap-1.5 bg-blue-600 text-white text-[11px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-blue-900/40 animate-pulse">
                 <Flame size={10} /> Şokk İndirim
               </span>
@@ -91,15 +92,17 @@ function DiscountSlide({ slide, product, discount, onScroll }) {
               </span>
             </div>
 
-            <h1 className="font-black leading-tight tracking-tight mb-3" style={{ fontSize: 'clamp(1.75rem, 5vw, 3.5rem)' }}>
+<h1 className="font-black leading-tight tracking-tight mb-1 lg:mb-3"
+            style={{ fontSize: 'clamp(1.75rem, 5vw, 3.5rem)' }}>
               <span className="text-white block">{slide.title}</span>
               <span className="text-blue-400 block">{slide.highlight}</span>
             </h1>
 
-            <p className="text-blue-200/55 text-sm mb-5 lg:mb-7 leading-relaxed">{slide.description}</p>
+          <p className="text-blue-200/55 text-sm mb-2 lg:mb-7 leading-relaxed">
+{slide.description}</p>
 
             {product && (
-              <div className="flex items-baseline gap-3 mb-6 lg:mb-8">
+<div className="flex items-baseline gap-3 mb-2 lg:mb-8">
                 {discountedPrice !== null ? (
                   <>
                     <span className="text-4xl lg:text-5xl font-black text-white tracking-tight">
@@ -128,7 +131,7 @@ function DiscountSlide({ slide, product, discount, onScroll }) {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-3 mb-7 lg:mb-9">
+<div className="flex flex-col sm:flex-row gap-2 lg:gap-3 mb-2 lg:mb-9">
               {product ? (
                 <>
                   <button onClick={() => navigate(`/urun/${product.id}`)} disabled={product.stock === 0}
@@ -143,14 +146,14 @@ function DiscountSlide({ slide, product, discount, onScroll }) {
                 </>
               ) : (
                 <button onClick={onScroll}
-                  className="flex items-center justify-center gap-2 bg-white hover:bg-blue-50 text-blue-700 w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-sm transition-all shadow-2xl shadow-blue-950 group">
+                  className="flex items-center justify-center gap-2 bg-white hover:bg-blue-50 text-blue-700 w-full sm:w-auto px-8 py-2.5 lg:py-3.5 rounded-2xl font-bold text-sm  transition-all shadow-2xl shadow-blue-950 group">
                   <ShoppingCart size={16} /> Fırsatları Gör
                   <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                 </button>
               )}
             </div>
 
-            <div className="flex flex-wrap gap-5">
+<div className="hidden lg:flex flex-wrap gap-5">
               {[
                 { icon: Shield, text: 'Orijinal Permolit' },
                 { icon: Truck, text: 'Erzurum Teslimat' },
@@ -245,199 +248,99 @@ function DiscountSlide({ slide, product, discount, onScroll }) {
   )
 }
 
-// ─── Partner Slide ─────────────────────────────────────────────────────────────
 function PartnerSlide({ slide, product, user, onScroll }) {
   const navigate = useNavigate()
 
   return (
-    <div
-      className="relative w-full overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900"
-      style={{ minHeight: '520px' }}
-    >
-      {/* NormalSlide ile aynı arka plan efektleri */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-[400px] h-[400px] bg-sky-400/8 rounded-full blur-3xl" />
-        <div className="absolute inset-0 opacity-[0.03]"
-          style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
-      </div>
+    <div className="relative w-full overflow-hidden" style={{ height: '680px', background: '#020c24' }}>
 
-      {/* Sol metin netleştirici */}
+  {slide.brand_logo_url && (
+  <img
+    src={slide.brand_logo_url}
+    alt=""
+    aria-hidden="true"
+    className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
+  />
+)}
+      {/* Karartma overlay */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'linear-gradient(100deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.4) 45%, transparent 70%)' }} />
+        style={{ background: 'linear-gradient(100deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.35) 50%, rgba(15,23,42,0.15) 100%)' }} />
 
-      <div className="relative z-10 max-w-7xl mx-auto flex items-center px-5 md:px-10 py-8 pb-20 lg:py-12 lg:pb-12" style={{ minHeight: '520px' }}>
-        <div className="flex flex-col lg:flex-row items-center w-full gap-6 lg:gap-16">
+<div className="relative z-10 max-w-7xl mx-auto flex items-center h-full px-5 md:px-10 py-8 pb-20">
+          <div className="flex flex-col w-full max-w-xl gap-5">
 
-          {/* ── MOBİL: logo üstte ── */}
-          {slide.brand_logo_url && (
-            <div className="lg:hidden flex justify-center w-full">
-              <div className="bg-white/10 border border-white/15 backdrop-blur-sm rounded-2xl px-5 py-3 flex items-center gap-3">
-                <img
-                  src={optimizeUrl(slide.brand_logo_url, 200)}
-                  alt="Partner Logo"
-                  className="h-10 w-auto max-w-[130px] object-contain"
-                  style={{ filter: 'brightness(1.1) drop-shadow(0 2px 8px rgba(59,130,246,0.3))' }}
-                  onError={e => { e.target.style.display = 'none' }}
-                />
-                <div className="w-px h-6 bg-blue-400/25" />
-                <div className="flex items-center gap-1 text-blue-300 text-[10px] font-bold uppercase tracking-widest">
-                  <BadgeCheck size={11} /> Resmi Bayi
-                </div>
-              </div>
+          {/* Rozetler */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[11px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest">
+              <BadgeCheck size={11} className="text-sky-400" /> Resmi Yetkili Bayi
             </div>
-          )}
-
-          {/* ── SOL: metin ── */}
-          <div className="flex-1 max-w-xl w-full">
-
-            {/* Rozetler */}
-            <div className="flex items-center gap-2 flex-wrap mb-5">
-              <div className="inline-flex items-center gap-1.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[11px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest">
-                <BadgeCheck size={11} className="text-sky-400" /> Resmi Yetkili Bayi
-              </div>
-              {slide.badge && (
-                <div className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-blue-200/70 text-[11px] font-semibold px-3 py-1.5 rounded-full">
-                  <Zap size={10} className="text-sky-400" /> {slide.badge}
-                </div>
-              )}
-            </div>
-
-            {/* Desktop logo — başlığın üstünde */}
-            {slide.brand_logo_url && (
-              <div className="hidden lg:flex items-center gap-3 mb-5">
-                <div className="bg-white/10 border border-white/15 backdrop-blur-sm rounded-2xl px-5 py-3 inline-flex items-center gap-3">
-                  <img
-                    src={optimizeUrl(slide.brand_logo_url, 260)}
-                    alt="Partner Logo"
-                    className="h-11 w-auto max-w-[160px] object-contain"
-                    style={{ filter: 'brightness(1.1) drop-shadow(0 2px 10px rgba(59,130,246,0.3))' }}
-                    onError={e => { e.target.style.display = 'none' }}
-                  />
-                  <div className="w-px h-7 bg-blue-400/20" />
-                  <span className="text-blue-300/55 text-[10px] font-semibold uppercase tracking-widest leading-snug">
-                    Resmi<br />Distribütör
-                  </span>
-                </div>
+            {slide.badge && (
+              <div className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-blue-200/70 text-[11px] font-semibold px-3 py-1.5 rounded-full">
+                <Zap size={10} className="text-sky-400" /> {slide.badge}
               </div>
             )}
-
-            <h1 className="font-black leading-tight tracking-tight mb-3" style={{ fontSize: 'clamp(1.75rem, 5vw, 3.5rem)' }}>
-              <span className="text-white block">{slide.title}</span>
-              <span className="text-blue-400 block">{slide.highlight}</span>
-            </h1>
-
-            <p className="text-blue-200/55 text-sm mb-5 lg:mb-7 leading-relaxed max-w-md">{slide.description}</p>
-
-            <div className="flex flex-col sm:flex-row gap-3 mb-7 lg:mb-9">
-              {product ? (
-                <>
-                  <button onClick={() => navigate(`/urun/${product.id}`)}
-                    className="flex items-center justify-center gap-2 bg-white hover:bg-blue-50 text-blue-700 w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-sm transition-all shadow-2xl shadow-blue-950 group">
-                    <ShoppingCart size={16} /> Ürünlere Göz At
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
-                  <button onClick={onScroll}
-                    className="flex items-center justify-center gap-2 border border-white/15 hover:border-white/35 bg-white/5 hover:bg-white/10 text-white w-full sm:w-auto px-8 py-3.5 rounded-2xl font-semibold text-sm transition-all">
-                    Tüm Ürünler
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button onClick={onScroll}
-                    className="flex items-center justify-center gap-2 bg-white hover:bg-blue-50 text-blue-700 w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-sm transition-all shadow-2xl shadow-blue-950 group">
-                    <ShoppingCart size={16} /> Ürünleri Keşfet
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
-                  {!user && (
-                    <Link to="/kayit-ol"
-                      className="flex items-center justify-center gap-2 border border-white/15 hover:border-white/35 bg-white/5 hover:bg-white/10 text-white w-full sm:w-auto px-8 py-3.5 rounded-2xl font-semibold text-sm transition-all">
-                      Ücretsiz Hesap Oluştur
-                    </Link>
-                  )}
-                </>
-              )}
-            </div>
-
-            <div className="flex flex-wrap gap-5">
-              {[
-                { icon: Shield, text: 'Orijinal Permolit' },
-                { icon: Truck, text: 'Erzurum Teslimat' },
-                { icon: Package, text: 'Teknik Destek' },
-              ].map(({ icon: Icon, text }) => (
-                <div key={text} className="flex items-center gap-2 text-blue-300/45 text-xs font-medium">
-                  <div className="w-6 h-6 bg-blue-500/15 rounded-lg flex items-center justify-center">
-                    <Icon size={12} className="text-blue-400" />
-                  </div>
-                  {text}
-                </div>
-              ))}
-            </div>
           </div>
 
-          {/* ── SAĞ: ürün varsa showcase, yoksa büyük logo ── */}
-<div className="hidden lg:flex items-center justify-center flex-shrink-0" style={{ width: '500px', height: '460px' }}>
-        {product ? (
-              <div
-                onClick={() => navigate(`/urun/${product.id}`)}
-                className="relative w-full h-full cursor-pointer group flex items-center justify-center">
-                <div className="absolute -inset-12 rounded-full pointer-events-none transition-all duration-700 group-hover:scale-105"
-                  style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.2) 0%, rgba(29,78,216,0.08) 50%, transparent 75%)' }} />
-                <div className="absolute -inset-4 rounded-full pointer-events-none"
-                  style={{ background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)' }} />
-                <div className="absolute inset-10 rounded-full border border-blue-400/20 pointer-events-none"
-                  style={{ animation: 'spin 25s linear infinite' }} />
-                <div className="absolute inset-20 rounded-full border border-blue-300/12 pointer-events-none"
-                  style={{ animation: 'spin 18s linear infinite reverse' }} />
-                {product.stock > 0 && product.stock <= 5 && (
-                  <div className="absolute z-20 bg-orange-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-lg pointer-events-none"
-                    style={{ top: '12%', left: '8%' }}>
-                    Son {product.stock} adet
-                  </div>
+
+          {/* Başlık */}
+          {(slide.title || slide.highlight) && (
+            <h1 className="font-black leading-tight tracking-tight" style={{ fontSize: 'clamp(1.75rem, 5vw, 3.5rem)' }}>
+              {slide.title && <span className="text-white block">{slide.title}</span>}
+              {slide.highlight && <span className="text-blue-400 block">{slide.highlight}</span>}
+            </h1>
+          )}
+
+          {slide.description && (
+            <p className="text-blue-200/55 text-sm leading-relaxed max-w-md">{slide.description}</p>
+          )}
+
+          {/* Butonlar */}
+<div className="flex flex-col sm:flex-row gap-3">
+                {product ? (
+              <>
+                <button onClick={() => navigate(`/urun/${product.id}`)}
+                  className="flex items-center justify-center gap-2 bg-white hover:bg-blue-50 text-blue-700 w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-sm
+ transition-all shadow-2xl shadow-blue-950 group">
+                  <ShoppingCart size={16} /> Ürünlere Göz At
+                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+                <button onClick={onScroll}
+                  className="flex items-center justify-center gap-2 border border-white/15 hover:border-white/35 bg-white/5 hover:bg-white/10 text-white w-full sm:w-auto px-8 py-3.5 rounded-2xl font-semibold text-sm transition-all">
+                  Tüm Ürünler
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={onScroll}
+                  className="flex items-center justify-center gap-2 bg-white hover:bg-blue-50 text-blue-700 w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-sm
+ transition-all shadow-2xl shadow-blue-950 group">
+                  <ShoppingCart size={16} /> Ürünleri Keşfet
+                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+                {!user && (
+                  <Link to="/kayit-ol"
+                    className="flex items-center justify-center gap-2 border border-white/15 hover:border-white/35 bg-white/5 hover:bg-white/10 text-white w-full sm:w-auto px-8 py-3.5 rounded-2xl font-semibold text-sm transition-all">
+                    Ücretsiz Hesap Oluştur
+                  </Link>
                 )}
-                {product.stock === 0 && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm">
-                    <span className="text-white font-bold text-base bg-red-500 px-4 py-2 rounded-2xl">Stok Yok</span>
-                  </div>
-                )}
-                {product.image_url ? (
-                  <img
-                    src={optimizeUrl(product.image_url, 700)}
-                    alt={product.name}
-                    className="relative z-10 w-[95%] h-[95%] object-contain transition-transform duration-500 group-hover:scale-105"
-                    style={{ filter: 'drop-shadow(0 0 48px rgba(59,130,246,0.65)) drop-shadow(0 24px 64px rgba(0,0,50,0.95))' }}
-                  />
-                ) : (
-                  <span className="text-[9rem] relative z-10 transition-transform duration-500 group-hover:scale-105 select-none"
-                    style={{ filter: 'drop-shadow(0 0 48px rgba(59,130,246,0.65))' }}>🪣</span>
-                )}
-                <div className="absolute bottom-6 left-1/2 z-20 pointer-events-none" style={{ transform: 'translateX(-50%)', whiteSpace: 'nowrap' }}>
-                  <div className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-bold px-4 py-2 rounded-full">
-                    {product.name.length > 34 ? product.name.slice(0, 34) + '…' : product.name}
-                  </div>
+              </>
+            )}
+          </div>
+
+          {/* Alt ikonlar */}
+          <div className="flex flex-wrap gap-3 lg:gap-5 mt-1">
+            {[
+              { icon: Shield, text: 'Orijinal Permolit' },
+              { icon: Truck, text: 'Erzurum Teslimat' },
+              { icon: Package, text: 'Teknik Destek' },
+            ].map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-center gap-2 text-blue-300/45 text-xs font-medium">
+                <div className="w-6 h-6 bg-blue-500/15 rounded-lg flex items-center justify-center">
+                  <Icon size={12} className="text-blue-400" />
                 </div>
+                {text}
               </div>
-            ) : slide.brand_logo_url ? (
-              <div className="relative flex items-center justify-center w-full h-full">
-                <div className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 65%)' }} />
-                <div className="absolute inset-16 rounded-full border border-blue-400/15 pointer-events-none"
-                  style={{ animation: 'spin 30s linear infinite' }} />
-                <div className="absolute inset-28 rounded-full border border-sky-300/10 pointer-events-none"
-                  style={{ animation: 'spin 20s linear infinite reverse' }} />
-              <div className="relative z-10 bg-white/[0.06] border border-white/10 backdrop-blur-sm rounded-3xl p-6 flex items-center justify-center"
-  style={{ width: '460px', height: '360px' }}>
-                 <img
-  src={optimizeUrl(slide.brand_logo_url, 1200)}
-  alt="Partner Logo"
-  className="w-full h-full object-contain"
-                    style={{ filter: 'brightness(1.15) drop-shadow(0 4px 20px rgba(59,130,246,0.4))' }}
-                    onError={e => { e.target.style.display = 'none' }}
-                  />
-                </div>
-                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/4 h-6 bg-blue-400/15 blur-xl rounded-full" />
-              </div>
-            ) : null}
+            ))}
           </div>
 
         </div>
@@ -445,13 +348,12 @@ function PartnerSlide({ slide, product, user, onScroll }) {
     </div>
   )
 }
-
 // ─── Normal Slide ─────────────────────────────────────────────────────────────
 function NormalSlide({ slide, product, user, onScroll }) {
   const navigate = useNavigate()
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900" style={{ minHeight: '520px' }}>
+    <div className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900" style={{ height: '680px' }}>
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-32 -right-32 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-32 -left-32 w-[400px] h-[400px] bg-sky-400/8 rounded-full blur-3xl" />
@@ -459,8 +361,8 @@ function NormalSlide({ slide, product, user, onScroll }) {
           style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-14 md:py-20 pb-24">
-        <div className={`flex flex-col gap-8 ${product ? 'lg:flex-row lg:items-center lg:gap-16' : ''}`}>
+<div className="relative z-10 max-w-7xl mx-auto flex items-center h-full px-6 py-8 pb-20">       
+   <div className={`flex flex-col gap-8 w-full ${product ? 'lg:flex-row lg:items-center lg:gap-16' : ''}`}>
           <div className={`${product ? 'lg:flex-1' : 'max-w-2xl'}`}>
             <div className="flex items-center gap-2 flex-wrap mb-5">
               {slide.badge && (
@@ -614,7 +516,7 @@ function HeroSlider({ user, onScroll }) {
   const go = (idx) => { setCurrent(idx); startTimer() }
 
   if (slides.length === 0) return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900" style={{ minHeight: '520px' }}>
+    <section className="relative overflow-hidden" style={{ height: 'auto', minHeight: '680px' }}>
       <div className="flex items-center justify-center min-h-[520px]">
         <div className="w-8 h-8 border-4 border-blue-400/40 border-t-blue-300 rounded-full animate-spin" />
       </div>
@@ -629,7 +531,8 @@ function HeroSlider({ user, onScroll }) {
   const isPartner = !!slide.brand_logo_url && !isDiscount
 
   return (
-    <section className="relative overflow-hidden" style={{ minHeight: '520px' }}>
+<section className="relative overflow-hidden" style={{ height: '680px' }}>
+
       {isDiscount
         ? <DiscountSlide slide={slide} product={product} discount={discount} onScroll={onScroll} />
         : isPartner
