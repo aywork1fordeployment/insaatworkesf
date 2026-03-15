@@ -376,8 +376,8 @@ function PartnerSlide({ slide, product, user, onScroll }) {
           </div>
 
           {/* ── SAĞ: ürün varsa showcase, yoksa büyük logo ── */}
-          <div className="hidden lg:flex items-center justify-center flex-shrink-0" style={{ width: '360px', height: '360px' }}>
-            {product ? (
+<div className="hidden lg:flex items-center justify-center flex-shrink-0" style={{ width: '500px', height: '460px' }}>
+        {product ? (
               <div
                 onClick={() => navigate(`/urun/${product.id}`)}
                 className="relative w-full h-full cursor-pointer group flex items-center justify-center">
@@ -425,12 +425,12 @@ function PartnerSlide({ slide, product, user, onScroll }) {
                   style={{ animation: 'spin 30s linear infinite' }} />
                 <div className="absolute inset-28 rounded-full border border-sky-300/10 pointer-events-none"
                   style={{ animation: 'spin 20s linear infinite reverse' }} />
-                <div className="relative z-10 bg-white/[0.06] border border-white/10 backdrop-blur-sm rounded-3xl p-12 flex items-center justify-center"
-                  style={{ width: '260px', height: '180px' }}>
-                  <img
-                    src={optimizeUrl(slide.brand_logo_url, 400)}
-                    alt="Partner Logo"
-                    className="w-full h-full object-contain"
+              <div className="relative z-10 bg-white/[0.06] border border-white/10 backdrop-blur-sm rounded-3xl p-6 flex items-center justify-center"
+  style={{ width: '460px', height: '360px' }}>
+                 <img
+  src={optimizeUrl(slide.brand_logo_url, 1200)}
+  alt="Partner Logo"
+  className="w-full h-full object-contain"
                     style={{ filter: 'brightness(1.15) drop-shadow(0 4px 20px rgba(59,130,246,0.4))' }}
                     onError={e => { e.target.style.display = 'none' }}
                   />
