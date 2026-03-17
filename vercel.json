@@ -3,14 +3,8 @@
     {
       "source": "/(.*)",
       "destination": "https://www.esfyapi.tr/$1",
-      "permanent": true
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "has": [{"type": "host", "value": "insaatworkesf.vercel.app"}],
-      "headers": [{"key": "X-Robots-Tag", "value": "noindex"}]
+      "permanent": true,
+      "has": [{"type": "host", "value": "insaatworkesf.vercel.app"}]
     }
   ]
 }
