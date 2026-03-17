@@ -1,3 +1,16 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://www.esfyapi.tr/$1",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "has": [{"type": "host", "value": "insaatworkesf.vercel.app"}],
+      "headers": [{"key": "X-Robots-Tag", "value": "noindex"}]
+    }
+  ]
 }
