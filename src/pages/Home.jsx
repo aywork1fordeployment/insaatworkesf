@@ -254,11 +254,12 @@ function PartnerSlide({ slide, product, user, onScroll }) {
   return (
     <div className="relative w-full overflow-hidden" style={{ height: '680px', background: '#020c24' }}>
 
-  {slide.brand_logo_url && (
+{slide.brand_logo_url && (
   <img
-    src={slide.brand_logo_url}
+    src={`https://res.cloudinary.com/du3yhj9dv/image/upload/w_1400,q_60,f_auto/${slide.brand_logo_url.split('/upload/')[1]}`}
     alt=""
     aria-hidden="true"
+    fetchPriority="high"
     className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
   />
 )}
@@ -539,22 +540,22 @@ function HeroSlider({ user, onScroll }) {
         ? <PartnerSlide slide={slide} product={product} user={user} onScroll={onScroll} />
         : <NormalSlide slide={slide} product={product} user={user} onScroll={onScroll} />
       }
-      {slides.length > 1 && (
-        <div className="absolute bottom-6 left-0 right-0 z-20 flex items-center justify-center gap-4">
-          <button onClick={prev} className="w-9 h-9 bg-white/10 hover:bg-white/25 border border-white/20 rounded-xl flex items-center justify-center text-white transition">
-            <ChevronLeft size={16} />
-          </button>
-          <div className="flex items-center gap-2">
-            {slides.map((_, i) => (
-              <button key={i} onClick={() => go(i)}
-                className={`rounded-full transition-all duration-300 ${i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/30 hover:bg-white/60'}`} />
-            ))}
-          </div>
-          <button onClick={next} className="w-9 h-9 bg-white/10 hover:bg-white/25 border border-white/20 rounded-xl flex items-center justify-center text-white transition">
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      )}
+    {slides.length > 1 && (
+  <div className="absolute bottom-6 left-0 right-0 z-20 flex items-center justify-center gap-4">
+    <button aria-label="Önceki slide" onClick={prev} className="w-9 h-9 bg-white/10 hover:bg-white/25 border border-white/20 rounded-xl flex items-center justify-center text-white transition">
+      <ChevronLeft size={16} />
+    </button>
+    <div className="flex items-center gap-2">
+      {slides.map((_, i) => (
+        <button key={i} aria-label={`Slide ${i+1}'e git`} onClick={() => go(i)}
+          className={`rounded-full transition-all duration-300 ${i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/30 hover:bg-white/60'}`} />
+      ))}
+    </div>
+    <button aria-label="Sonraki slide" onClick={next} className="w-9 h-9 bg-white/10 hover:bg-white/25 border border-white/20 rounded-xl flex items-center justify-center text-white transition">
+      <ChevronRight size={16} />
+    </button>
+  </div>
+)}
     </section>
   )
 }
