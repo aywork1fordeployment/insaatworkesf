@@ -135,9 +135,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
               <div className="relative">
                 <div className="w-11 h-11 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white/15 transition backdrop-blur-sm">
                   <img src="/logo-small.webp" alt="ESF"
-                    className="w-7 h-7 object-contain"
-                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
-                  <span className="hidden text-white font-black text-xl">E</span>
+  className="w-7 h-7 object-contain" />
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-blue-950" />
               </div>

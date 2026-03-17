@@ -650,7 +650,7 @@ const matchSearch = normalize(p.name)?.includes(normalize(search))
         </div>
       </div>
 
-      <div id="products" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10">
+      <main id="products" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-slate-900">
@@ -746,7 +746,7 @@ const matchSearch = normalize(p.name)?.includes(normalize(search))
                     {product.name}
                   </h3>
                   {product.description && (
-                    <p className="text-[11px] sm:text-xs text-slate-400 line-clamp-1 mb-2">{product.description}</p>
+                   <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1 mb-2">{product.description}</p>
                   )}
                   <div className="flex items-center justify-between mt-auto pt-2.5 border-t border-slate-50">
                     {/* Fiyat: indirimli göster */}
@@ -776,7 +776,7 @@ const matchSearch = normalize(p.name)?.includes(normalize(search))
             )})}
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }
