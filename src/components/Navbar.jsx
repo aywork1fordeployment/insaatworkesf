@@ -134,7 +134,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
             <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
               <div className="relative">
                 <div className="w-11 h-11 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white/15 transition backdrop-blur-sm">
-                  <img src="/logo-small.png" alt="ESF"
+                  <img src="/logo-small.webp" alt="ESF"
                     className="w-7 h-7 object-contain"
                     onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
                   <span className="hidden text-white font-black text-xl">E</span>
@@ -327,10 +327,11 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
                   )}
                 </Link>
               )}
-              <button onClick={() => setMobileOpen(!mobileOpen)}
-                className="w-10 h-10 flex items-center justify-center text-blue-200 rounded-xl hover:bg-white/10 transition">
-                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
+          <button onClick={() => setMobileOpen(!mobileOpen)}
+  aria-label={mobileOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+  className="w-10 h-10 flex items-center justify-center text-blue-200 rounded-xl hover:bg-white/10 transition">
+  {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+</button>
             </div>
           </div>
         </div>
