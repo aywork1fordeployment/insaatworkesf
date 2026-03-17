@@ -612,7 +612,12 @@ export default function Home() {
   const scrollToProducts = () => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })
 
   const filtered = products.filter(p => {
-    const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase())
+    const normalize = (str) =>
+  str?.toLowerCase()
+    .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+    .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+
+const matchSearch = normalize(p.name)?.includes(normalize(search))
     const matchCat = !category || p.category === category
     return matchSearch && matchCat
   })
