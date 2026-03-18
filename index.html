@@ -1,32 +1,37 @@
 <!doctype html>
 <html lang="tr">
   <head>
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LDP83DE5F2"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-LDP83DE5F2');
-    </script>
-
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1d4ed8" />
     <meta name="robots" content="index, follow" />
-    
-    <!-- Critical Preconnects (Max 3-4) -->
-    <link rel="preconnect" href="https://nzkbxrdiwlywsswtrxho.supabase.co">
-    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Fonts (Async Load) -->
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
+
+    <!-- ✅ Preconnects (önce kritik olanlar) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="preconnect" href="https://nzkbxrdiwlywsswtrxho.supabase.co" />
+    <!-- ✅ Lighthouse'un önerdiği eksik preconnect -->
+    <link rel="preconnect" href="https://www.google-analytics.com" />
+
+    <!-- ✅ Google Fonts — render bloke ETMİYOR (media=print trick) -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap"
+      />
+    </noscript>
 
     <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="512x512" href="/logo.png" />
+    <!-- ✅ logo.png yerine logo.webp kullan (28x28 için 512x512 çok büyük) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo-small.webp" />
 
     <!-- SEO -->
     <link rel="canonical" href="https://www.esfyapi.tr/" />
@@ -39,7 +44,8 @@
     <meta property="og:url" content="https://www.esfyapi.tr/" />
     <meta property="og:title" content="ESF Yapı & İnşaat | Permolit Boya Erzurum Resmi Bayii" />
     <meta property="og:description" content="Erzurum'un resmi Permolit bayii. Orijinal ürün garantisi, hızlı teslimat." />
-    <meta property="og:image" content="https://www.esfyapi.tr/logo.png" />
+    <!-- ✅ OG image için Cloudinary optimize URL -->
+    <meta property="og:image" content="https://res.cloudinary.com/du3yhj9dv/image/upload/w_1200,q_80,f_auto/logo" />
     <meta property="og:locale" content="tr_TR" />
     <meta property="og:site_name" content="ESF Yapı & İnşaat" />
 
@@ -47,7 +53,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="ESF Yapı & İnşaat | Permolit Boya Erzurum" />
     <meta name="twitter:description" content="Erzurum'un resmi Permolit bayii." />
-    <meta name="twitter:image" content="https://www.esfyapi.tr/logo.png" />
+    <meta name="twitter:image" content="https://res.cloudinary.com/du3yhj9dv/image/upload/w_1200,q_80,f_auto/logo" />
 
     <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
@@ -73,7 +79,7 @@
       },
       "openingHours": "Mo-Sa 08:00-18:00",
       "priceRange": "₺₺",
-      "image": "https://www.esfyapi.tr/logo.png",
+      "image": "https://www.esfyapi.tr/logo-small.webp",
       "sameAs": []
     }
     </script>
@@ -81,5 +87,18 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <script>
+      window.addEventListener('load', function () {
+        var s = document.createElement('script');
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-LDP83DE5F2';
+        s.async = true;
+        document.head.appendChild(s);
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-LDP83DE5F2', { send_page_view: true });
+      });
+    </script>
   </body>
 </html>
