@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { optimizeUrl } from '../lib/cloudinary'
 import useCartStore from '../store/cartStore'
 import useAuthStore from '../store/authStore'
 import Navbar from '../components/Navbar'
