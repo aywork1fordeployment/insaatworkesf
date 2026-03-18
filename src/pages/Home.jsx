@@ -706,12 +706,23 @@ const matchSearch = normalize(p.name)?.includes(normalize(search))
                 <div onClick={() => navigate(`/urun/${product.id}`)}
                   className="relative overflow-hidden cursor-pointer flex-shrink-0"
                   style={{ height: '160px' }}>
-                  {product.image_url ? (
-                    <div className="w-full h-full bg-slate-50 flex items-center justify-center">
-                      <img src={optimizeUrl(product.image_url, 400)} alt={product.name}
-                        className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500" />
-                    </div>
-                  ) : (
+                {product.image_url ? (
+  <div className="w-full h-full bg-slate-50 flex items-center justify-center">
+    {(() => {
+      const { src, srcSet, sizes } = getResponsiveSrcSet(product.image_url)
+      return (
+        <img 
+          src={src}
+          srcSet={srcSet}
+          sizes={sizes}
+          alt={product.name}
+          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+        />
+      )
+    })()}
+  </div>
+) : (
                     <div className={`w-full h-full bg-gradient-to-br ${CARD_BG[i % CARD_BG.length]} flex items-center justify-center relative overflow-hidden`}>
                       <div className="absolute inset-0 opacity-10"
                         style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,.3) 8px, rgba(255,255,255,.3) 16px)' }} />

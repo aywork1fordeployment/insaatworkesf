@@ -19,5 +19,26 @@ export const uploadImage = async (file) => {
 
 export const optimizeUrl = (url, width = 400) => {
   if (!url) return null
+  if (!url.includes('cloudinary.com')) return url
   return url.replace('/upload/', `/upload/w_${width},q_auto,f_auto/`)
+}
+
+export const getResponsiveSrcSet = (url) => {
+  if (!url) return { src: null, srcSet: '', sizes: '' }
+  if (!url.includes('cloudinary.com')) return { src: url, srcSet: '', sizes: '' }
+  
+  const widths = [150, 300, 600, 1200]
+  
+  const srcSet = widths
+    .map(w => {
+      const optimized = url.replace('/upload/', `/upload/w_${w},q_auto,f_auto/`)
+      return `${optimized} ${w}w`
+    })
+    .join(', ')
+  
+  return {
+    src: optimizeUrl(url, 300), // Fallback
+    srcSet,
+    sizes: '(max-width: 640px) 150px, (max-width: 1024px) 300px, 600px'
+  }
 }
