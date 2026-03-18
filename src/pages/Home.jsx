@@ -5,6 +5,7 @@ import { optimizeUrl } from '../lib/cloudinary'
 import useCartStore from '../store/cartStore'
 import useAuthStore from '../store/authStore'
 import Navbar from '../components/Navbar'
+import { optimizeUrl, getResponsiveSrcSet } from '../lib/cloudinary'
 import {
   ShoppingCart, Search, Package, Shield, Truck,
   ChevronRight, ChevronLeft, Zap, ArrowRight, Tag, Flame, BadgeCheck
