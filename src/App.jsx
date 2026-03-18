@@ -27,7 +27,7 @@ import MarqueeYonetimi from './pages/admin/MarqueeYonetimi'
 function PrivateRoute({ children }) {
   const { user, profile, loading } = useAuthStore()
   if (loading) return <LoadingScreen />
-  if (!user) return <Navigate to="/giris-yap" />
+  if (!user) return <Navigate to="/giris-yap" aria-label="Kullanıcı girişi"/>
   if (profile?.role === 'admin') return <Navigate to="/admin/dashboard" />
   return children
 }
@@ -42,7 +42,7 @@ function GuestRoute({ children }) {
 function AdminRoute({ children }) {
   const { user, profile, loading } = useAuthStore()
   if (loading) return <LoadingScreen />
-  if (!user) return <Navigate to="/giris-yap" />
+  if (!user) return <Navigate to="/giris-yap" aria-label="Kullanıcı girişi"/>
   if (profile?.role !== 'admin') return <Navigate to="/" />
   return children
 }

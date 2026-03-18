@@ -74,7 +74,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
   return (
     <>
 {/* Top bar — kayan yazı */}
-{marqueeItems.length > 0 && (
+{marqueeItems.length > 0 && false && (
   <div className="bg-blue-950 text-blue-300 text-[11px] py-2 overflow-hidden hidden md:block border-b border-blue-800/60 relative w-full">
     <div className="flex flex-nowrap min-w-full">
       {/* Aşağıdaki animate-marquee sınıfı iki kez basılacak.
@@ -302,6 +302,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
               ) : (
                 <>
                   <Link to="/giris-yap"
+                    aria-label="Kullanıcı girişi"
                     className="text-sm text-blue-200 hover:text-white px-4 py-2 rounded-xl hover:bg-white/10 transition font-semibold border border-white/15">
                     Giriş Yap
                   </Link>
@@ -354,7 +355,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
               </div>
             ) : (
               <div className="flex gap-2 px-4 py-3 bg-white/5 border-b border-white/10">
-                <Link to="/giris-yap" className="flex-1 text-center text-sm py-2.5 rounded-xl border border-white/20 text-blue-200 font-semibold">Giriş Yap</Link>
+                <Link to="/giris-yap" aria-label="Kullanıcı girişi" className="flex-1 text-center text-sm py-2.5 rounded-xl border border-white/20 text-blue-200 font-semibold">Giriş Yap</Link>
                 <Link to="/kayit-ol" className="flex-1 text-center text-sm py-2.5 rounded-xl bg-sky-500 text-white font-semibold shadow-lg shadow-sky-900/40">Kayıt Ol</Link>
               </div>
             )}

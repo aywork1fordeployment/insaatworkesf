@@ -760,16 +760,19 @@ const matchSearch = normalize(p.name)?.includes(normalize(search))
                         <span className="text-base sm:text-lg font-black text-blue-700">₺{Number(product.price).toFixed(2)}</span>
                       )}
                     </div>
-                    <button onClick={() => handleAdd(product)} disabled={product.stock === 0}
-                      className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all
-                        ${added[product.id] ? 'bg-green-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200'}
-                        disabled:opacity-30 disabled:cursor-not-allowed`}>
-                      <ShoppingCart size={11} />
-                      <span className="hidden sm:inline">
-                        {!user ? 'Giriş Yap' : added[product.id] ? 'Eklendi!' : 'Ekle'}
-                      </span>
-                      <span className="sm:hidden">{added[product.id] ? '✓' : '+'}</span>
-                    </button>
+                  <button 
+  onClick={() => handleAdd(product)} 
+  disabled={product.stock === 0}
+  aria-label={!user ? 'Sepete eklemek için giriş yapın' : 'Sepete ekle'}
+  className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all
+    ${added[product.id] ? 'bg-green-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200'}
+    disabled:opacity-30 disabled:cursor-not-allowed`}>
+  <ShoppingCart size={11} />
+  <span className="hidden sm:inline">
+    {!user ? 'Sepete Ekle' : added[product.id] ? 'Eklendi!' : 'Ekle'}
+  </span>
+  <span className="sm:hidden">{added[product.id] ? '✓' : '+'}</span>
+</button>
                   </div>
                 </div>
               </div>

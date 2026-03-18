@@ -110,6 +110,7 @@ export default function Login() {
             </div>
 
             <button onClick={handleSubmit} disabled={loading}
+              aria-label="Giriş yap"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-50 flex items-center justify-center gap-2 mt-1">
               {loading
                 ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
