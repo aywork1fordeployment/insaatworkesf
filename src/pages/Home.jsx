@@ -656,7 +656,7 @@ const matchSearch = normalize(p.name)?.includes(normalize(search))
             <h2 className="text-lg sm:text-xl font-bold text-slate-900">
               {category ? category : search ? `"${search}" sonuçları` : 'Tüm Ürünler'}
             </h2>
-            <p className="text-slate-400 text-xs sm:text-sm mt-0.5">{filtered.length} ürün</p>
+            <p className="text-slate-600 text-xs sm:text-sm mt-0.5">{filtered.length} ürün</p>
           </div>
           {(category || search) && (
             <button onClick={() => { setSearch(''); setCategory(null) }}
