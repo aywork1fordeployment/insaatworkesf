@@ -74,7 +74,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
   return (
     <>
 {/* Top bar — kayan yazı */}
-{marqueeItems.length > 0 && false && (
+{marqueeItems.length > 0 && (
   <div className="bg-blue-950 text-blue-300 text-[11px] py-2 overflow-hidden hidden md:block border-b border-blue-800/60 relative w-full">
     <div className="flex flex-nowrap min-w-full">
       {/* Aşağıdaki animate-marquee sınıfı iki kez basılacak.
@@ -135,7 +135,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
               <div className="relative">
                 <div className="w-11 h-11 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white/15 transition backdrop-blur-sm">
                   <img 
-  src="/logo-nav.webp" 
+  src="/logo-small.webp" 
   width="28" 
   height="28" alt="ESF Yapı İnşaat logo"
   className="w-7 h-7 object-contain" />
