@@ -30,7 +30,7 @@ export default function Footer() {
         <div>
           <div className="flex items-center gap-3 mb-5">
             <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-              <img src="/logo.png" alt="ESF Logo" className="w-7 h-7 object-contain"
+              <img src="/logo.png" alt="ESF Yapı İnşaat - Permolit Boya Bayii logo" className="w-7 h-7 object-contain"
                 onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
               <span className="hidden text-blue-700 font-black text-base">E</span>
             </div>
@@ -85,7 +85,10 @@ export default function Footer() {
               </div>
               <div>
                 <p className="text-xs text-slate-500 mb-0.5 font-medium uppercase tracking-wide">Adres</p>
-                <p className="text-sm text-slate-400">Erzurum, Türkiye</p>
+                <p className="text-sm text-slate-400">
+  Ilıca, Hoca Ahmet Yesevi Mahallesi, No: 19/B, 25700<br />
+  Aziziye, Erzurum
+</p>
               </div>
             </div>
             <div className="flex items-start gap-3">

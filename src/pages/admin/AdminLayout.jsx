@@ -94,7 +94,7 @@ useEffect(() => {
         <div className="px-5 py-5 border-b border-slate-700/60">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="ESF Logo"
+              <img src="/logo.png" alt="ESF Yapı İnşaat - Permolit Boya Bayii logo"
                 className="w-9 h-9 rounded-xl shadow object-contain"
                 onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }} />
               <div className="hidden items-center justify-center w-9 h-9 bg-blue-700 rounded-xl shadow">

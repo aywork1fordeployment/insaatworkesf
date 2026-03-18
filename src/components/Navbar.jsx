@@ -84,7 +84,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
         
         {/* BİRİNCİ GRUP (Ekranı dolduran vagonlar) */}
         <div className="flex items-center">
-          {[...Array(10)].map((_, i) => (
+          {[...Array(3)].map((_, i) => (
             <div key={`vagon1-${i}`} className="flex items-center">
               {marqueeItems.map((item) => (
                 <div key={`item1-${item.id}-${i}`} className="flex items-center mx-10">
@@ -99,7 +99,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
 
         {/* İKİNCİ GRUP (Sonsuz döngü için birinci grubun kopyası) */}
         <div className="flex items-center">
-          {[...Array(10)].map((_, i) => (
+          {[...Array(3)].map((_, i) => (
             <div key={`vagon2-${i}`} className="flex items-center">
               {marqueeItems.map((item) => (
                 <div key={`item2-${item.id}-${i}`} className="flex items-center mx-10">
@@ -134,7 +134,7 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
             <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
               <div className="relative">
                 <div className="w-11 h-11 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white/15 transition backdrop-blur-sm">
-                  <img src="/logo-small.webp" alt="ESF"
+                  <img src="/logo-small.webp" alt="ESF Yapı İnşaat logo"
   className="w-7 h-7 object-contain" />
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-blue-950" />

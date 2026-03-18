@@ -24,7 +24,7 @@ function DiscountSlide({ slide, product, discount, onScroll }) {
       {/* indirim.png — tam alan, çok düşük opacity, sadece doku */}
       <img
         src="/indirim.png"
-        alt=""
+        alt="İndirim arka plan görseli"
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
         style={{ opacity: 0.12, filter: 'saturate(0.5) blur(0.5px)' }}
@@ -56,8 +56,8 @@ function DiscountSlide({ slide, product, discount, onScroll }) {
         style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.35) 0%, transparent 70%)' }} />
       {product.image_url ? (
         <img
-          src={optimizeUrl(product.image_url, 400)}
-          alt={product.name}
+  src={optimizeUrl(product.image_url, 400)}
+  alt={`${product.name} - İndirimli ürün`}
           className="w-full h-full object-contain relative z-10"
           style={{ filter: 'drop-shadow(0 0 24px rgba(59,130,246,0.75)) drop-shadow(0 6px 20px rgba(0,0,40,0.9))' }}
         />
@@ -217,9 +217,9 @@ function DiscountSlide({ slide, product, discount, onScroll }) {
 
                 {/* ÜRÜN GÖRSELİ */}
                 {product.image_url ? (
-                  <img
-                    src={optimizeUrl(product.image_url, 700)}
-                    alt={product.name}
+                 <img
+  src={optimizeUrl(product.image_url, 700)}
+  alt={`${product.name} - Ürün görseli`}
                     className="relative z-10 w-[95%] h-[95%] object-contain transition-transform duration-500 group-hover:scale-105"
                     style={{
                       filter: 'drop-shadow(0 0 48px rgba(59,130,246,0.65)) drop-shadow(0 24px 64px rgba(0,0,50,0.95))',
@@ -256,8 +256,8 @@ function PartnerSlide({ slide, product, user, onScroll }) {
 
 {slide.brand_logo_url && (
   <img
-    src={`https://res.cloudinary.com/du3yhj9dv/image/upload/w_1400,q_60,f_auto/${slide.brand_logo_url.split('/upload/')[1]}`}
-    alt=""
+  src={`https://res.cloudinary.com/du3yhj9dv/image/upload/w_1400,q_60,f_auto/${slide.brand_logo_url.split('/upload/')[1]}`}
+  alt={`${slide.title || 'Partner'} - Marka görseli`}
     aria-hidden="true"
     fetchPriority="high"
     className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"

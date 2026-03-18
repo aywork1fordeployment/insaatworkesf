@@ -14,7 +14,7 @@ const LoadingScreen = () => {
             <div className="relative bg-white rounded-full p-8 shadow-2xl">
               <img 
                 src="/logo.png" 
-                alt="ESF Yapı İnşaat" 
+                alt="Yükleniyor" 
                 className="w-24 h-24 object-contain"
                 onError={(e) => {
                   // Logo yüklenemezse fallback icon göster

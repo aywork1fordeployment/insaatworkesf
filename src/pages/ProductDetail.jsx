@@ -110,8 +110,8 @@ export default function ProductDetail() {
               )}
               {product.image_url ? (
                 <img
-                  src={optimizeUrl(product.image_url, 600)}
-                  alt={product.name}
+  src={optimizeUrl(product.image_url, 600)}
+  alt={`${product.name} - Ürün görseli`}
                   className="w-full h-full object-contain absolute inset-0 transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (
