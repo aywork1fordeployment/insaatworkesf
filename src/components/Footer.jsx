@@ -3,7 +3,7 @@ import { Phone, MapPin, Mail, ExternalLink, ChevronRight, Shield, Truck, Package
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0B1528] text-slate-400">
+    <footer className="bg-[#0B1528] text-slate-300">
 
       {/* Üst bant */}
       <div className="border-b border-white/5">
@@ -17,7 +17,7 @@ export default function Footer() {
               <div className="w-8 h-8 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Icon size={15} className="text-blue-400" />
               </div>
-              <span className="text-sm text-slate-400 font-medium">{text}</span>
+              <span className="text-sm text-slate-300 font-medium">{text}</span>
             </div>
           ))}
         </div>
@@ -36,10 +36,10 @@ export default function Footer() {
             </div>
             <div>
               <p className="font-bold text-white text-sm leading-tight">ESF Yapı & İnşaat</p>
-              <p className="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-medium">Boya & Sarf Malzemeleri</p>
+              <p className="text-[10px] uppercase tracking-[0.15em] text-slate-400 font-medium">Boya & Sarf Malzemeleri</p>
             </div>
           </div>
-          <p className="text-sm leading-relaxed text-slate-500 mb-5">
+          <p className="text-sm leading-relaxed text-slate-400 mb-5">
             Permolit Boya Doğu Anadolu Bölge Bayii olarak Erzurum ve çevresine profesyonel boya ve yapı malzemeleri sunuyoruz.
           </p>
           <a href="https://www.permolitboya.com.tr/" target="_blank" rel="noopener noreferrer"
@@ -64,7 +64,7 @@ export default function Footer() {
               { label: 'İletişim', to: '/iletisim' },
             ].map(({ label, to }) => (
               <Link key={to} to={to}
-                className="flex items-center gap-2 text-sm text-slate-500 hover:text-white transition py-1 group">
+                className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition py-1 group">
                 <ChevronRight size={12} className="text-blue-500/50 group-hover:text-blue-400 transition" />
                 {label}
               </Link>
@@ -84,11 +84,11 @@ export default function Footer() {
                 <MapPin size={14} className="text-blue-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-0.5 font-medium uppercase tracking-wide">Adres</p>
-                <p className="text-sm text-slate-400">
-  Ilıca, Hoca Ahmet Yesevi Mahallesi, No: 19/B, 25700<br />
-  Aziziye, Erzurum
-</p>
+                <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">Adres</p>
+                <p className="text-sm text-slate-300">
+                  Ilıca, Hoca Ahmet Yesevi Mahallesi, No: 19/B, 25700<br />
+                  Aziziye, Erzurum
+                </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -96,17 +96,17 @@ export default function Footer() {
                 <Phone size={14} className="text-blue-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-0.5 font-medium uppercase tracking-wide">I. Telefon</p>
-                <a href="tel:+90" className="text-sm text-slate-400 hover:text-white transition">+90 (532) 358 17 92</a>
+                <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">I. Telefon</p>
+                <a href="tel:+905323581792" className="text-sm text-slate-300 hover:text-white transition">+90 (532) 358 17 92</a>
               </div>
             </div>
-                    <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3">
               <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Phone size={14} className="text-blue-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-0.5 font-medium uppercase tracking-wide">II. Telefon</p>
-                <a href="tel:+90" className="text-sm text-slate-400 hover:text-white transition">+90 (533) 053 95 35</a>
+                <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">II. Telefon</p>
+                <a href="tel:+905330539535" className="text-sm text-slate-300 hover:text-white transition">+90 (533) 053 95 35</a>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -114,8 +114,8 @@ export default function Footer() {
                 <Mail size={14} className="text-blue-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-0.5 font-medium uppercase tracking-wide">E-posta</p>
-                <a href="mailto:esfyapi@hotmail.com" className="text-sm text-slate-400 hover:text-white transition">esfyapi@hotmail.com</a>
+                <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">E-posta</p>
+                <a href="mailto:esfyapi@hotmail.com" className="text-sm text-slate-300 hover:text-white transition">esfyapi@hotmail.com</a>
               </div>
             </div>
           </div>
@@ -125,8 +125,8 @@ export default function Footer() {
       {/* Alt çizgi */}
       <div className="border-t border-white/5 py-5 px-6">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-slate-600">© {new Date().getFullYear()} ESF Yapı İnşaat. Tüm hakları saklıdır.</p>
-          <p className="text-xs text-slate-700 font-medium">Permolit Boya Yetkili Bayii · Erzurum</p>
+          <p className="text-xs text-slate-500">© {new Date().getFullYear()} ESF Yapı İnşaat. Tüm hakları saklıdır.</p>
+          <p className="text-xs text-slate-600 font-medium">Permolit Boya Yetkili Bayii · Erzurum</p>
         </div>
       </div>
     </footer>
