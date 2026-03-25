@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { ShoppingCart, LogOut, Menu, X, ChevronDown, Package, MapPin, Shield, ChevronRight } from 'lucide-react'
+import { ShoppingCart, LogOut, Menu, X, ChevronDown, Package, MapPin, Shield, ChevronRight, Search  } from 'lucide-react'
 import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
 import { supabase } from '../lib/supabase'
@@ -15,6 +15,8 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
   const [megaOpen, setMegaOpen] = useState(false)
   const [categories, setCategories] = useState([])
   const [scrolled, setScrolled] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [navSearch, setNavSearch] = useState('')
   const [expandedMobile, setExpandedMobile] = useState(null)
   const megaRef = useRef()
   const count = getCount()
@@ -266,6 +268,39 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
 
             {/* Desktop sağ */}
             <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+                <div className="relative flex items-center">
+    {searchOpen && (
+      <input
+        autoFocus
+        value={navSearch}
+        onChange={e => setNavSearch(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && navSearch.trim()) {
+            setSearchOpen(false)
+            if (location.pathname !== '/') navigate('/')
+            setTimeout(() => {
+              const input = document.querySelector('input[placeholder*="Ürün ara"]')
+if (input) {
+  const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
+  nativeSetter.call(input, navSearch)
+  input.dispatchEvent(new Event('input', { bubbles: true }))
+}
+              document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })
+            }, location.pathname !== '/' ? 400 : 100)
+          }
+          if (e.key === 'Escape') { setSearchOpen(false); setNavSearch('') }
+        }}
+        placeholder="Ürün ara..."
+        className="w-48 bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-sm text-white placeholder-blue-300 outline-none focus:border-sky-400 transition-all"
+      />
+    )}
+    <button
+      onClick={() => { setSearchOpen(!searchOpen); setNavSearch('') }}
+      aria-label="Arama"
+      className="p-2 text-blue-300 hover:text-white hover:bg-white/10 rounded-xl transition ml-1">
+      {searchOpen ? <X size={18} /> : <Search size={18} />}
+    </button>
+  </div>
               {activeCategory && (
                 <span className="text-xs bg-white/10 text-sky-300 font-semibold px-3 py-1.5 rounded-full border border-white/15 flex items-center gap-1.5">
                   {activeCategory}
@@ -362,6 +397,33 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
                 <Link to="/kayit-ol" className="flex-1 text-center text-sm py-2.5 rounded-xl bg-sky-500 text-white font-semibold shadow-lg shadow-sky-900/40">Kayıt Ol</Link>
               </div>
             )}
+
+            <div className="px-4 pt-3 pb-1">
+  <div className="flex items-center gap-2 bg-white/10 border border-white/15 rounded-xl px-3 py-2.5">
+    <Search size={14} className="text-blue-400 flex-shrink-0" />
+    <input
+      value={navSearch}
+      onChange={e => setNavSearch(e.target.value)}
+      onKeyDown={e => {
+        if (e.key === 'Enter' && navSearch.trim()) {
+          setMobileOpen(false)
+          if (location.pathname !== '/') navigate('/')
+          setTimeout(() => {
+           const input = document.querySelector('input[placeholder*="Ürün ara"]')
+if (input) {
+  const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
+  nativeSetter.call(input, navSearch)
+  input.dispatchEvent(new Event('input', { bubbles: true }))
+}
+            document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })
+          }, location.pathname !== '/' ? 400 : 100)
+        }
+      }}
+      placeholder="Ürün ara..."
+      className="flex-1 bg-transparent text-sm text-white placeholder-blue-400 outline-none"
+    />
+  </div>
+</div>
 
             {/* Nav linkleri */}
             <div className="px-3 py-2 border-b border-white/10">
