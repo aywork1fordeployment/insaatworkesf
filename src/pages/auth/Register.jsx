@@ -81,7 +81,7 @@ export default function Register() {
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Ad Soyad</label>
               <input type="text" value={form.fullName} onChange={e => setForm({...form, fullName: e.target.value})} required
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                placeholder="Ali Yılmaz" />
+                placeholder="Adınızı ve soyadınızı girin." />
             </div>
 
             <div>
