@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { X, ShoppingBag, Search, Phone, Mail, TrendingUp, Clock, Package, Ban, CheckCircle } from 'lucide-react'
+import { X, ShoppingBag, Search, Phone, Mail, TrendingUp, Clock, Package, Ban, CheckCircle, Trash2, AlertTriangle } from 'lucide-react'
 
 const STATUS_MAP = {
   pending:    { label: 'Bekliyor',     cls: 'bg-yellow-100 text-yellow-700' },
@@ -9,10 +9,50 @@ const STATUS_MAP = {
   cancelled:  { label: 'İptal',        cls: 'bg-red-100 text-red-600' },
 }
 
-function CustomerModal({ customer, onClose, onBlockToggle }) {
+function DeleteConfirmModal({ customer, onCancel, onConfirm, deleting }) {
+  return (
+    <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+        <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle size={28} className="text-red-500" />
+        </div>
+        <h3 className="font-bold text-gray-900 text-lg mb-1">Müşteriyi Sil</h3>
+        <p className="text-sm text-gray-500 mb-1">
+          <span className="font-semibold text-gray-700">{customer.full_name || 'Bu müşteri'}</span> silinecek.
+        </p>
+        <p className="text-xs text-red-500 mb-6">
+          Bu işlem geri alınamaz. Tüm sipariş geçmişi ve veriler kalıcı olarak silinir.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            disabled={deleting}
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition disabled:opacity-50"
+          >
+            Vazgeç
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={deleting}
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-red-500 text-white hover:bg-red-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {deleting
+              ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              : <><Trash2 size={14} /> Sil</>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CustomerModal({ customer, onClose, onBlockToggle, onDelete }) {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [blocking, setBlocking] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     supabase.from('orders').select('*')
@@ -35,142 +75,171 @@ function CustomerModal({ customer, onClose, onBlockToggle }) {
     onBlockToggle(customer.id, newValue)
   }
 
+  const handleDelete = async () => {
+    setDeleting(true)
+    const { error } = await supabase.rpc('delete_user_completely', { user_id: customer.id })
+    setDeleting(false)
+    onDelete(customer.id)
+  }
+
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
-      <div className="min-h-full flex items-start justify-center p-4 py-8">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+    <>
+      {showDeleteConfirm && (
+        <DeleteConfirmModal
+          customer={customer}
+          onCancel={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          deleting={deleting}
+        />
+      )}
 
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm ${
-                customer.is_blocked ? 'bg-red-400' : 'bg-gradient-to-br from-blue-500 to-blue-600'
-              }`}>
-                {(customer.full_name || '?')[0].toUpperCase()}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-gray-900">{customer.full_name || '—'}</h3>
-                  {customer.is_blocked && (
-                    <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">ENGELLENDİ</span>
-                  )}
+      <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+        <div className="min-h-full flex items-start justify-center p-4 py-8">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm ${
+                  customer.is_blocked ? 'bg-red-400' : 'bg-gradient-to-br from-blue-500 to-blue-600'
+                }`}>
+                  {(customer.full_name || '?')[0].toUpperCase()}
                 </div>
-                <div className="flex items-center gap-3 mt-0.5">
-                  {customer.email && (
-                    <a href={`mailto:${customer.email}`} className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition">
-                      <Mail size={11} />{customer.email}
-                    </a>
-                  )}
-                  {customer.phone_number && (
-                    <a href={`tel:${customer.phone_number}`} className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition">
-                      <Phone size={11} />{customer.phone_number}
-                    </a>
-                  )}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-gray-900">{customer.full_name || '—'}</h3>
+                    {customer.is_blocked && (
+                      <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">ENGELLENDİ</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 mt-0.5">
+                    {customer.email && (
+                      <a href={`mailto:${customer.email}`} className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition">
+                        <Mail size={11} />{customer.email}
+                      </a>
+                    )}
+                    {customer.phone_number && (
+                      <a href={`tel:${customer.phone_number}`} className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition">
+                        <Phone size={11} />{customer.phone_number}
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
+              <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition">
+                <X size={18} />
+              </button>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition">
-              <X size={18} />
-            </button>
-          </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 divide-x divide-gray-100 border-b border-gray-100">
-            <div className="px-4 py-3 text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Package size={13} className="text-blue-400" />
-                <p className="text-lg font-bold text-gray-800">{orderCount}</p>
+            {/* Stats */}
+            <div className="grid grid-cols-3 divide-x divide-gray-100 border-b border-gray-100">
+              <div className="px-4 py-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Package size={13} className="text-blue-400" />
+                  <p className="text-lg font-bold text-gray-800">{orderCount}</p>
+                </div>
+                <p className="text-xs text-gray-400">Sipariş</p>
               </div>
-              <p className="text-xs text-gray-400">Sipariş</p>
-            </div>
-            <div className="px-4 py-3 text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <TrendingUp size={13} className="text-green-500" />
-                <p className="text-lg font-bold text-green-600">₺{totalSpent.toFixed(0)}</p>
+              <div className="px-4 py-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <TrendingUp size={13} className="text-green-500" />
+                  <p className="text-lg font-bold text-green-600">₺{totalSpent.toFixed(0)}</p>
+                </div>
+                <p className="text-xs text-gray-400">Tamamlanan</p>
               </div>
-              <p className="text-xs text-gray-400">Tamamlanan</p>
-            </div>
-            <div className="px-4 py-3 text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Clock size={13} className="text-yellow-500" />
-                <p className="text-lg font-bold text-yellow-600">₺{pendingAmount.toFixed(0)}</p>
+              <div className="px-4 py-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Clock size={13} className="text-yellow-500" />
+                  <p className="text-lg font-bold text-yellow-600">₺{pendingAmount.toFixed(0)}</p>
+                </div>
+                <p className="text-xs text-gray-400">Bekleyen</p>
               </div>
-              <p className="text-xs text-gray-400">Bekleyen</p>
             </div>
-          </div>
 
-          {/* Siparişler */}
-          <div className="max-h-72 overflow-y-auto">
-            {loading ? (
-              <div className="p-8 text-center">
-                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-              </div>
-            ) : orders.length === 0 ? (
-              <div className="p-12 text-center">
-                <ShoppingBag size={32} className="mx-auto text-gray-200 mb-2" />
-                <p className="text-gray-400 text-sm">Henüz sipariş yok</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-50">
-                {orders.map(o => {
-                  const s = STATUS_MAP[o.status] || STATUS_MAP.pending
-                  const final = Number(o.final_price) || Number(o.total_price) || 0
-                  return (
-                    <div key={o.id} className="px-5 py-3.5 hover:bg-gray-50 transition">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-gray-500">#{o.id}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
+            {/* Siparişler */}
+            <div className="max-h-72 overflow-y-auto">
+              {loading ? (
+                <div className="p-8 text-center">
+                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="p-12 text-center">
+                  <ShoppingBag size={32} className="mx-auto text-gray-200 mb-2" />
+                  <p className="text-gray-400 text-sm">Henüz sipariş yok</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {orders.map(o => {
+                    const s = STATUS_MAP[o.status] || STATUS_MAP.pending
+                    const final = Number(o.final_price) || Number(o.total_price) || 0
+                    return (
+                      <div key={o.id} className="px-5 py-3.5 hover:bg-gray-50 transition">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-gray-500">#{o.id}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
+                          </div>
+                          <span className="font-bold text-blue-700">₺{final.toFixed(2)}</span>
                         </div>
-                        <span className="font-bold text-blue-700">₺{final.toFixed(2)}</span>
+                        <p className="text-xs text-gray-400">{new Date(o.created_at).toLocaleString('tr-TR')}</p>
+                        {o.order_items?.length > 0 && (
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {o.order_items.map((item, i) => (
+                              <span key={i} className={`text-[11px] px-2 py-0.5 rounded-lg ${
+                                item.cancelled ? 'bg-red-50 text-red-400 line-through' : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                {item.name} ×{item.quantity}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {!o.order_items?.length && o.customer_note && (
+                          <p className="text-xs text-gray-400 mt-1 truncate">{o.customer_note}</p>
+                        )}
                       </div>
-                      <p className="text-xs text-gray-400">{new Date(o.created_at).toLocaleString('tr-TR')}</p>
-                      {o.order_items?.length > 0 && (
-                        <div className="mt-1.5 flex flex-wrap gap-1">
-                          {o.order_items.map((item, i) => (
-                            <span key={i} className={`text-[11px] px-2 py-0.5 rounded-lg ${
-                              item.cancelled ? 'bg-red-50 text-red-400 line-through' : 'bg-gray-100 text-gray-600'
-                            }`}>
-                              {item.name} ×{item.quantity}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {!o.order_items?.length && o.customer_note && (
-                        <p className="text-xs text-gray-400 mt-1 truncate">{o.customer_note}</p>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
 
-          {/* Footer — engelle/engeli kaldır */}
-          <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between gap-3">
-            <p className="text-xs text-gray-400">
-              Kayıt: {new Date(customer.created_at).toLocaleDateString('tr-TR')}
-              {customer.last_order_at && ` · Son sipariş: ${new Date(customer.last_order_at).toLocaleDateString('tr-TR')}`}
-            </p>
-            <button
-              onClick={handleBlockToggle}
-              disabled={blocking}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition disabled:opacity-50 flex-shrink-0 ${
-                customer.is_blocked
-                  ? 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-200'
-                  : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
-              }`}>
-              {blocking
-                ? <span className="w-4 h-4 border-2 border-current/40 border-t-current rounded-full animate-spin" />
-                : customer.is_blocked
-                  ? <><CheckCircle size={14} /> Engeli Kaldır</>
-                  : <><Ban size={14} /> Engelle</>
-              }
-            </button>
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between gap-3">
+              <p className="text-xs text-gray-400">
+                Kayıt: {new Date(customer.created_at).toLocaleDateString('tr-TR')}
+                {customer.last_order_at && ` · Son sipariş: ${new Date(customer.last_order_at).toLocaleDateString('tr-TR')}`}
+              </p>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Engelle / Engeli Kaldır */}
+                <button
+                  onClick={handleBlockToggle}
+                  disabled={blocking}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition disabled:opacity-50 ${
+                    customer.is_blocked
+                      ? 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-200'
+                      : 'bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-200'
+                  }`}>
+                  {blocking
+                    ? <span className="w-4 h-4 border-2 border-current/40 border-t-current rounded-full animate-spin" />
+                    : customer.is_blocked
+                      ? <><CheckCircle size={14} /> Engeli Kaldır</>
+                      : <><Ban size={14} /> Engelle</>
+                  }
+                </button>
+
+                {/* Sil */}
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition"
+                >
+                  <Trash2 size={14} /> Sil
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -202,6 +271,11 @@ export default function Customers() {
     if (selected?.id === id) setSelected(prev => ({ ...prev, is_blocked: isBlocked }))
   }
 
+  const handleDelete = (id) => {
+    setCustomers(prev => prev.filter(c => c.id !== id))
+    setSelected(null)
+  }
+
   const filtered = customers.filter(c =>
     !search ||
     c.full_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -216,6 +290,7 @@ export default function Customers() {
           customer={selected}
           onClose={() => setSelected(null)}
           onBlockToggle={handleBlockToggle}
+          onDelete={handleDelete}
         />
       )}
 

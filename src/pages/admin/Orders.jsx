@@ -199,8 +199,7 @@ tbody tr { page-break-inside: avoid; page-break-after: auto; }
       <tbody>
         ${items.map(i => `
         <tr>
-          <td>${i.name}${i.variant_label ? ` <span style="font-size:10px;background:#f3e8ff;color:#7c3aed;padding:2px 6px;border-radius:4px;font-weight:700">${i.variant_label}</span>` : ''}</td>
-          <td><span class="qty-badge">${i.quantity}</span></td>
+<td>${i.name}${(i.variant_label || i.base_label) ? ` <span style="font-size:10px;background:#f3e8ff;color:#7c3aed;padding:2px 6px;border-radius:4px;font-weight:700">${i.variant_label || i.base_label}</span>` : ''}</td>          <td><span class="qty-badge">${i.quantity}</span></td>
 <td style="font-family:'Source Sans 3',sans-serif;font-weight:600">₺${Number(i.price).toFixed(2)}</td>
           <td>₺${(Number(i.price) * i.quantity).toFixed(2)}</td>
         </tr>`).join('')}
@@ -431,9 +430,9 @@ return (
                         }
                        <span className={`font-medium truncate ${cancelledItems[i] ? 'line-through text-slate-400' : 'text-slate-700'}`}>
   {item.name}
-  {item.variant_label && (
+{(item.variant_label || item.base_label) && (
     <span className="ml-1 text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-semibold">
-      {item.variant_label}
+      {item.variant_label || item.base_label}
     </span>
   )}
 </span>
@@ -730,12 +729,12 @@ export default function Orders() {
                   {order.customer_note && (
                     <p className="pl-10 text-xs text-slate-500 mt-1 truncate">{order.customer_note.slice(0, 60)}</p>
                   )}
-                  
-                   {order.order_items?.some(i => i.variant_label) && (
-                    <p className="pl-10 text-xs text-purple-500 mt-0.5 truncate">
-                      {order.order_items.filter(i => i.variant_label).map(i => `${i.name} (${i.variant_label})`).join(', ')}
-                    </p>
-                  )}
+
+                 {order.order_items?.some(i => i.variant_label || i.base_label) && (
+  <p className="pl-10 text-xs text-purple-500 mt-0.5 truncate">
+    {order.order_items.filter(i => i.variant_label || i.base_label).map(i => `${i.name} (${i.variant_label || i.base_label})`).join(', ')}
+  </p>
+)}
 
                   {(discount > 0 || tax > 0) && (
                     <div className="pl-10 flex items-center gap-3 mt-1 text-[11px]">

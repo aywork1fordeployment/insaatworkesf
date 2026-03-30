@@ -121,10 +121,10 @@ function OrderDetailModal({ order, onClose, onCancel }) {
                     <div key={idx} className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
-                        <span className="text-gray-700 font-medium truncate">{item.name}</span>
-                        {item.variant_label && (
+                       <span className="text-gray-700 font-medium truncate">{item.name}</span>
+                        {(item.variant_label || item.base_label) && (
                           <span className="text-[11px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
-                            {item.variant_label}
+                            {item.variant_label || item.base_label}
                           </span>
                         )}
                       </div>
@@ -149,8 +149,8 @@ function OrderDetailModal({ order, onClose, onCancel }) {
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-[10px] bg-red-100 text-red-500 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">İPTAL</span>
                               <span className="text-gray-400 line-through truncate">{item.name}</span>
-                              {item.variant_label && (
-                                <span className="text-[11px] text-gray-300 flex-shrink-0">{item.variant_label}</span>
+                              {(item.variant_label || item.base_label) && (
+                                <span className="text-[11px] text-gray-300 flex-shrink-0">{item.variant_label || item.base_label}</span>
                               )}
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0 ml-2">
@@ -331,7 +331,7 @@ export default function UserOrders() {
                             ? 'bg-red-50 text-red-400 line-through'
                             : 'bg-slate-50 text-slate-500'
                         }`}>
-                          {item.name}{item.variant_label ? ` · ${item.variant_label}` : ''} x{item.quantity}
+                          {item.name}{(item.variant_label || item.base_label) ? ` · ${item.variant_label || item.base_label}` : ''} x{item.quantity}
                         </span>
                       ))}
                     </div>

@@ -27,13 +27,14 @@ export default function Cart() {
           total_price: total,
           customer_note: note || null,
           order_items: items.map(i => ({
-            product_id: i.product.id,
-            variant_id: i.product.variant_id || null,
-            name: i.product.name,
-            variant_label: i.product.variant_label || null,
-            quantity: i.quantity,
-            price: i.product.price,
-          })),
+           product_id: i.product.id,
+           variant_id: i.product.variant_id || null,
+           name: i.product.name,
+           variant_label: i.product.variant_label || null,
+           base_label: i.product.base_label || null, /* BURA EKLENDİ */
+           quantity: i.quantity,
+           price: i.product.price,
+         })),
         })
         .select()
         .single()
@@ -74,9 +75,9 @@ export default function Cart() {
         order_id: orderData.id,
         action: 'siparis_olusturuldu',
         note: `Yeni sipariş oluşturuldu. Tutar: ₺${total.toFixed(2)} | ${items.map(i => {
-          const label = i.product.variant_label ? ` (${i.product.variant_label})` : ''
-          return `${i.product.name}${label} x${i.quantity}`
-        }).join(', ')}`,
+         const label = (i.product.variant_label || i.product.base_label) ? ` (${i.product.variant_label || i.product.base_label})` : ''
+         return `${i.product.name}${label} x${i.quantity}`
+       }).join(', ')}`,
       })
 
       clearCart()
