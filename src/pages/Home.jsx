@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import useCartStore from '../store/cartStore'
 import useAuthStore from '../store/authStore'
 import useFilterStore from '../store/filterStore'
+import useHomeStore from '../store/homeStore'
 import Navbar from '../components/Navbar'
 import { optimizeUrl, getResponsiveSrcSet } from '../lib/cloudinary'
 import {
@@ -563,33 +564,28 @@ function HeroSlider({ user, onScroll }) {
 
 // ─── Ana Sayfa ────────────────────────────────────────────────────────────────
 export default function Home() {
-  const [products, setProducts] = useState([])
-  const [discountMap, setDiscountMap] = useState({}) 
+ 
   const { search, setSearch, category, setCategory } = useFilterStore()
-  const [loading, setLoading] = useState(true)
+  
+
+  const { products, discountMap, loading, fetchProducts } = useHomeStore()
+
   const [added, setAdded] = useState({})
+
   const addItem = useCartStore(s => s.addItem)
   const { user } = useAuthStore()
   const navigate = useNavigate()
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      const now = new Date().toISOString()
-      const [{ data: prods }, { data: discs }] = await Promise.all([
-        supabase.from('products').select('*').order('created_at', { ascending: false }),
-        supabase.from('discounts').select('*').eq('is_active', true).lte('start_date', now).gte('end_date', now),
-      ])
-      setProducts(prods || [])
-      // productId → discount map
-      const map = {}
-      discs?.forEach(d => { map[d.product_id] = d })
-      setDiscountMap(map)
-      setLoading(false)
-    }
+
     fetchProducts()
+
     const channel = supabase.channel('products-home')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => fetchProducts())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
+        fetchProducts(true)
+      })
       .subscribe()
+
     return () => supabase.removeChannel(channel)
   }, [])
 
