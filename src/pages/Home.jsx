@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import useCartStore from '../store/cartStore'
 import useAuthStore from '../store/authStore'
+import useFilterStore from '../store/filterStore'
 import Navbar from '../components/Navbar'
 import { optimizeUrl, getResponsiveSrcSet } from '../lib/cloudinary'
 import {
@@ -563,9 +564,8 @@ function HeroSlider({ user, onScroll }) {
 // ─── Ana Sayfa ────────────────────────────────────────────────────────────────
 export default function Home() {
   const [products, setProducts] = useState([])
-  const [discountMap, setDiscountMap] = useState({}) // productId → discount
-  const [search, setSearch] = useState('')
-  const [category, setCategory] = useState(null)
+  const [discountMap, setDiscountMap] = useState({}) 
+  const { search, setSearch, category, setCategory } = useFilterStore()
   const [loading, setLoading] = useState(true)
   const [added, setAdded] = useState({})
   const addItem = useCartStore(s => s.addItem)

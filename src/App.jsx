@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom'
 import { supabase } from './lib/supabase'
 import { useEffect } from 'react'
 import useAuthStore from './store/authStore'
@@ -49,9 +49,14 @@ function AdminRoute({ children }) {
 
 function ScrollToTop() {
   const { pathname } = useLocation()
+  const navType = useNavigationType()
+
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
+    if (navType !== 'POP') {
+      window.scrollTo(0, 0)
+    }
+  }, [pathname, navType])
+
   return null
 }
 
