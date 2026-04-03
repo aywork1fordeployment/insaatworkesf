@@ -268,39 +268,49 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
 
             {/* Desktop sağ */}
             <div className="hidden md:flex items-center gap-2 flex-shrink-0">
-                <div className="relative flex items-center">
-    {searchOpen && (
-      <input
-        autoFocus
-        value={navSearch}
-        onChange={e => setNavSearch(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 'Enter' && navSearch.trim()) {
-            setSearchOpen(false)
-            if (location.pathname !== '/') navigate('/')
-            setTimeout(() => {
-              const input = document.querySelector('input[placeholder*="Ürün ara"]')
-if (input) {
-  const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
-  nativeSetter.call(input, navSearch)
-  input.dispatchEvent(new Event('input', { bubbles: true }))
-}
-              document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })
-            }, location.pathname !== '/' ? 400 : 100)
-          }
-          if (e.key === 'Escape') { setSearchOpen(false); setNavSearch('') }
-        }}
-        placeholder="Ürün ara..."
-        className="w-48 bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-sm text-white placeholder-blue-300 outline-none focus:border-sky-400 transition-all"
-      />
-    )}
-    <button
-      onClick={() => { setSearchOpen(!searchOpen); setNavSearch('') }}
-      aria-label="Arama"
-      className="p-2 text-blue-300 hover:text-white hover:bg-white/10 rounded-xl transition ml-1">
-      {searchOpen ? <X size={18} /> : <Search size={18} />}
-    </button>
-  </div>
+              
+              {/* WhatsApp Butonu (Desktop) */}
+              <a href="https://wa.me/905323581792" target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 px-3.5 py-2 rounded-xl transition-all mr-1 group shadow-[0_0_15px_rgba(34,197,94,0.15)]"
+                title="WhatsApp'tan Bize Ulaşın">
+                <img src="/whatsapp.png" alt="WhatsApp İletişim" className="w-6 h-6 object-contain group-hover:scale-110 transition-transform drop-shadow-md" />
+                <span className="text-green-400 text-[13px] font-black tracking-wide">WhatsApp</span>
+              </a>
+
+              <div className="relative flex items-center">
+                {searchOpen && (
+                  <input
+                    autoFocus
+                    value={navSearch}
+                    onChange={e => setNavSearch(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && navSearch.trim()) {
+                        setSearchOpen(false)
+                        if (location.pathname !== '/') navigate('/')
+                        setTimeout(() => {
+                          const input = document.querySelector('input[placeholder*="Ürün ara"]')
+                          if (input) {
+                            const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
+                            nativeSetter.call(input, navSearch)
+                            input.dispatchEvent(new Event('input', { bubbles: true }))
+                          }
+                          document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })
+                        }, location.pathname !== '/' ? 400 : 100)
+                      }
+                      if (e.key === 'Escape') { setSearchOpen(false); setNavSearch('') }
+                    }}
+                    placeholder="Ürün ara..."
+                    className="w-48 bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-sm text-white placeholder-blue-300 outline-none focus:border-sky-400 transition-all"
+                  />
+                )}
+                <button
+                  onClick={() => { setSearchOpen(!searchOpen); setNavSearch('') }}
+                  aria-label="Arama"
+                  className="p-2 text-blue-300 hover:text-white hover:bg-white/10 rounded-xl transition ml-1">
+                  {searchOpen ? <X size={18} /> : <Search size={18} />}
+                </button>
+              </div>
+              
               {activeCategory && (
                 <span className="text-xs bg-white/10 text-sky-300 font-semibold px-3 py-1.5 rounded-full border border-white/15 flex items-center gap-1.5">
                   {activeCategory}
@@ -351,9 +361,15 @@ if (input) {
                 </>
               )}
             </div>
-
-            {/* Mobil sağ */}
+         {/* Mobil sağ */}
             <div className="flex md:hidden items-center gap-2">
+              
+              {/* WhatsApp Butonu (Mobil) */}
+              <a href="https://wa.me/905323581792" target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 bg-green-500/10 border border-green-500/30 rounded-xl hover:bg-green-500/20 transition-all shadow-[0_0_10px_rgba(34,197,94,0.15)]">
+                <img src="/whatsapp.png" alt="WhatsApp" className="w-7 h-7 object-contain drop-shadow-md" />
+              </a>
+
               {user && profile?.role !== 'admin' && (
                 <Link to="/sepetim" className="relative flex items-center justify-center w-10 h-10 bg-sky-500 text-white rounded-xl shadow-lg shadow-sky-900/40">
                   <ShoppingCart size={17} />
@@ -364,11 +380,11 @@ if (input) {
                   )}
                 </Link>
               )}
-          <button onClick={() => setMobileOpen(!mobileOpen)}
-  aria-label={mobileOpen ? 'Menüyü kapat' : 'Menüyü aç'}
-  className="w-10 h-10 flex items-center justify-center text-blue-200 rounded-xl hover:bg-white/10 transition">
-  {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-</button>
+              <button onClick={() => setMobileOpen(!mobileOpen)}
+                aria-label={mobileOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+                className="w-10 h-10 flex items-center justify-center text-blue-200 rounded-xl hover:bg-white/10 transition">
+                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
             </div>
           </div>
         </div>
