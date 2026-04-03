@@ -362,16 +362,18 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
               )}
             </div>
          {/* Mobil sağ */}
+            {/* Mobil sağ */}
             <div className="flex md:hidden items-center gap-2">
               
               {/* WhatsApp Butonu (Mobil) */}
               <a href="https://wa.me/905323581792" target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center w-10 h-10 bg-green-500/10 border border-green-500/30 rounded-xl hover:bg-green-500/20 transition-all shadow-[0_0_10px_rgba(34,197,94,0.15)]">
-                <img src="/whatsapp.png" alt="WhatsApp" className="w-7 h-7 object-contain drop-shadow-md" />
+                className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-green-900/30 hover:scale-105 transition-transform flex-shrink-0">
+                <img src="/whatsapp.png" alt="WhatsApp" className="w-full h-full object-cover" />
               </a>
 
-              {user && profile?.role !== 'admin' && (
-                <Link to="/sepetim" className="relative flex items-center justify-center w-10 h-10 bg-sky-500 text-white rounded-xl shadow-lg shadow-sky-900/40">
+              {/* Sepet Butonu */}
+              {profile?.role !== 'admin' && (
+                <Link to="/sepetim" className="relative flex items-center justify-center w-10 h-10 bg-sky-500 text-white rounded-xl shadow-lg shadow-sky-900/40 flex-shrink-0">
                   <ShoppingCart size={17} />
                   {count > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-blue-950">
@@ -380,9 +382,11 @@ export default function Navbar({ onCategorySelect, activeCategory }) {
                   )}
                 </Link>
               )}
+
+              {/* Menü Aç/Kapat Butonu */}
               <button onClick={() => setMobileOpen(!mobileOpen)}
                 aria-label={mobileOpen ? 'Menüyü kapat' : 'Menüyü aç'}
-                className="w-10 h-10 flex items-center justify-center text-blue-200 rounded-xl hover:bg-white/10 transition">
+                className="w-10 h-10 flex items-center justify-center text-blue-200 rounded-xl hover:bg-white/10 transition flex-shrink-0">
                 {mobileOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
             </div>
