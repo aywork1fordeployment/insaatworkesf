@@ -61,8 +61,12 @@ export default function ProductDetail() {
     : null
   const finalPrice = discountedPrice ?? Number(activePrice)
 
-  const handleAdd = () => {
+const handleAdd = () => {
     if (!product) return
+    
+    // Eğer adam alanı sildiğinde boşken butona basarsa 1 kabul et
+    const safeQuantity = quantity === '' ? 1 : quantity
+
     const cartItem = {
       ...product,
       price: finalPrice,           // ← indirimli fiyat
@@ -72,7 +76,7 @@ export default function ProductDetail() {
       variant_label: selectedVariant?.label || null,
       ...(selectedVariant && !selectedVariant.isBase && { variant_id: selectedVariant.id }),
     }
-    addItem(cartItem, quantity)
+    addItem(cartItem, safeQuantity)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
@@ -205,12 +209,45 @@ export default function ProductDetail() {
               <div className="flex items-center gap-4 mb-6">
                 <span className="text-sm font-medium text-slate-600">Miktar:</span>
                 <div className="flex items-center gap-3 bg-slate-100 rounded-xl p-1">
-                  <button onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  <button onClick={() => setQuantity(q => Math.max(1, (q === '' ? 2 : q) - 1))}
                     className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-blue-600 transition">
                     <Minus size={14} />
                   </button>
-                  <span className="w-8 text-center font-bold text-slate-900">{quantity}</span>
-                  <button onClick={() => setQuantity(q => Math.min(activeStock || 1, q + 1))}
+                  
+                  <input
+                    type="number"
+                    min="1"
+                    max={activeStock || undefined}
+                    value={quantity}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      // Anlık silmelere izin ver
+                      if (val === '') {
+                        setQuantity('')
+                        return
+                      }
+                      
+                      const num = parseInt(val, 10)
+                      if (!isNaN(num)) {
+                        // Stok kontrolü: Adam stoktan fazla yazarsa otomatik stoka çek
+                        if (activeStock && num > activeStock) {
+                          setQuantity(activeStock)
+                        } else {
+                          setQuantity(num)
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      // Adam alanı boş bırakıp çıkarsa 1'e sabitle
+                      const val = parseInt(quantity, 10)
+                      if (isNaN(val) || val < 1) {
+                        setQuantity(1)
+                      }
+                    }}
+                    className="w-12 text-center text-base font-bold text-slate-900 bg-transparent outline-none focus:bg-white focus:ring-2 focus:ring-blue-400 rounded transition-all py-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+
+                  <button onClick={() => setQuantity(q => Math.min(activeStock || 9999, (q === '' ? 0 : q) + 1))}
                     disabled={outOfStock}
                     className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-blue-600 transition disabled:opacity-40">
                     <Plus size={14} />
@@ -219,13 +256,12 @@ export default function ProductDetail() {
               </div>
 
               {/* Toplam — çok miktarda fark görünsün */}
-              {quantity > 1 && (
+              {(quantity === '' ? 1 : quantity) > 1 && (
                 <div className="mb-4 bg-blue-50 rounded-xl px-4 py-2.5 flex items-center justify-between">
-                  <span className="text-sm text-slate-500">{quantity} adet toplam</span>
-                  <span className="font-bold text-blue-700">₺{(finalPrice * quantity).toFixed(2)}</span>
+                  <span className="text-sm text-slate-500">{quantity === '' ? 1 : quantity} adet toplam</span>
+                  <span className="font-bold text-blue-700">₺{(finalPrice * (quantity === '' ? 1 : quantity)).toFixed(2)}</span>
                 </div>
               )}
-
               <button
                 onClick={handleAdd}
                 disabled={outOfStock}

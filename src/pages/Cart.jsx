@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { optimizeUrl } from '../lib/cloudinary'
@@ -6,6 +6,56 @@ import useAuthStore from '../store/authStore'
 import useCartStore, { getCartKey } from '../store/cartStore'
 import Navbar from '../components/Navbar'
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react'
+
+
+// Bu ufak komponenti importların hemen altına koy
+function QuantityControl({ quantity, cartKey, updateQuantity }) {
+  const [localQty, setLocalQty] = useState(quantity)
+
+  // Eğer adam artı/eksi tuşuna basarsa local state'i de güncelle
+  useEffect(() => {
+    setLocalQty(quantity)
+  }, [quantity])
+
+  return (
+    <div className="flex items-center gap-1.5 bg-slate-100 rounded-xl p-1">
+      <button onClick={() => updateQuantity(cartKey, quantity - 1)}
+        className="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-500 hover:text-blue-600 transition">
+        <Minus size={12} />
+      </button>
+      
+      <input
+        type="number"
+        min="1"
+        value={localQty}
+        onChange={(e) => {
+          // Sadece inputtaki yazıyı değiştirir, store'u asla ellemez!
+          setLocalQty(e.target.value) 
+        }}
+        onBlur={() => {
+          // Adam yazı yazmayı bitirip başka yere tıklayınca store'a kaydet
+          const val = parseInt(localQty, 10)
+          if (isNaN(val) || val < 1) {
+            setLocalQty(1)
+            updateQuantity(cartKey, 1)
+          } else {
+            updateQuantity(cartKey, val)
+          }
+        }}
+        onKeyDown={(e) => {
+          // Enter'a basarsa direkt kaydetsin
+          if (e.key === 'Enter') e.target.blur()
+        }}
+        className="w-10 text-center text-sm font-bold text-slate-900 bg-transparent outline-none focus:bg-white focus:ring-2 focus:ring-blue-400 rounded transition-all py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      />
+
+      <button onClick={() => updateQuantity(cartKey, quantity + 1)}
+        className="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-500 hover:text-blue-600 transition">
+        <Plus size={12} />
+      </button>
+    </div>
+  )
+}
 
 export default function Cart() {
   const { user } = useAuthStore()
@@ -156,18 +206,13 @@ export default function Cart() {
                         </p>
 
                         <div className="flex items-center justify-between mt-3">
+
                           {/* Miktar */}
-                          <div className="flex items-center gap-1.5 bg-slate-100 rounded-xl p-1">
-                            <button onClick={() => updateQuantity(cartKey, quantity - 1)}
-                              className="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-500 hover:text-blue-600 transition">
-                              <Minus size={12} />
-                            </button>
-                            <span className="w-6 text-center text-sm font-bold text-slate-900">{quantity}</span>
-                            <button onClick={() => updateQuantity(cartKey, quantity + 1)}
-                              className="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-500 hover:text-blue-600 transition">
-                              <Plus size={12} />
-                            </button>
-                          </div>
+                          <QuantityControl 
+                            quantity={quantity} 
+                            cartKey={cartKey} 
+                            updateQuantity={updateQuantity} 
+                          />
 
                           <div className="flex items-center gap-3">
                             <span className="font-bold text-slate-800">
