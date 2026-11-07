@@ -6,22 +6,9 @@
     <meta name="theme-color" content="#1d4ed8" />
     <meta name="robots" content="index, follow" />
 
-    <!-- Preconnects — MAX 4, sadece gerçekten kullanılanlar -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Preconnects — Sadece Cloudinary ve Supabase -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="preconnect" href="https://nzkbxrdiwlywsswtrxho.supabase.co" />
-
-    <!-- Google Fonts — render BLOKLAMAMIYOR -->
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap"
-      media="print"
-      onload="this.media='all'"
-    />
-    <noscript>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" />
-    </noscript>
 
     <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -82,9 +69,11 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- Google Analytics — sayfa yüklendikten SONRA, LCP'yi bloklamıyor -->
+    <!-- Google Analytics — KVKK ve Gizlilik Uyumlu (IP Anonimleştirme Etkin) -->
     <script>
       window.addEventListener('load', function () {
+        var consent = localStorage.getItem('esf_cookie_consent');
+        if (consent === 'declined') return;
         var s = document.createElement('script');
         s.src = 'https://www.googletagmanager.com/gtag/js?id=G-LDP83DE5F2';
         s.async = true;
@@ -92,7 +81,7 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-        gtag('config', 'G-LDP83DE5F2', { send_page_view: true });
+        gtag('config', 'G-LDP83DE5F2', { anonymize_ip: true, send_page_view: true });
       });
     </script>
   </body>

@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNavigate, Link } from 'react-router-dom'
-import { Eye, EyeOff, UserPlus } from 'lucide-react'
+import { Eye, EyeOff, UserPlus, ShieldCheck } from 'lucide-react'
+import KvkkModal from '../../components/KvkkModal'
 
 export default function Register() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [showPass, setShowPass] = useState(false)
+  const [kvkkAccepted, setKvkkAccepted] = useState(false)
+  const [kvkkModalOpen, setKvkkModalOpen] = useState(false)
   const [form, setForm] = useState({ fullName: '', email: '', phone: '', password: '' })
 
   const handlePhone = (val) => {
@@ -22,6 +25,11 @@ export default function Register() {
 
     if (form.phone.length !== 10) {
       setError('Geçerli bir telefon numarası girin. (10 hane)')
+      return
+    }
+
+    if (!kvkkAccepted) {
+      setError('Lütfen devam etmek için KVKK Aydınlatma Metni\'ni okuyup onaylayın.')
       return
     }
 
@@ -115,6 +123,28 @@ export default function Register() {
               </div>
             </div>
 
+            {/* KVKK Onay Kutusu */}
+            <div className="flex items-start gap-2.5 pt-1">
+              <input
+                id="kvkk-check"
+                type="checkbox"
+                checked={kvkkAccepted}
+                onChange={e => setKvkkAccepted(e.target.checked)}
+                className="w-4 h-4 mt-0.5 rounded text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer accent-blue-600 flex-shrink-0"
+              />
+              <label htmlFor="kvkk-check" className="text-xs text-gray-600 leading-snug cursor-pointer select-none">
+                6698 sayılı Kanun kapsamındaki{' '}
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); setKvkkModalOpen(true) }}
+                  className="text-blue-600 hover:text-blue-700 underline font-semibold inline"
+                >
+                  KVKK Aydınlatma Metni
+                </button>
+                'ni okudum, anladım ve kişisel verilerimin belirtilen amaçlarla işlenmesini kabul ediyorum.
+              </label>
+            </div>
+
             <button onClick={handleSubmit} disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-50 flex items-center justify-center gap-2 mt-1">
               {loading ? (
@@ -124,6 +154,12 @@ export default function Register() {
               )}
             </button>
           </div>
+
+          <KvkkModal
+            isOpen={kvkkModalOpen}
+            onClose={() => setKvkkModalOpen(false)}
+            defaultTab="kvkk"
+          />
 
           <div className="mt-6 pt-5 border-t border-gray-100 text-center">
             <p className="text-sm text-gray-500">

@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom'
 import { supabase } from './lib/supabase'
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import useAuthStore from './store/authStore'
 import Footer from './components/Footer'
 import LoadingScreen from './components/LoadingScreen'
+import CookieBanner from './components/CookieBanner'
+import KvkkModal from './components/KvkkModal'
 import Register from './pages/auth/Register'
 import Login from './pages/auth/Login'
 import Home from './pages/Home'
@@ -11,6 +13,7 @@ import ProductDetail from './pages/ProductDetail'
 import Cart from './pages/Cart'
 import UserOrders from './pages/UserOrders'
 import Profile from './pages/Profile'
+import Legal from './pages/Legal'
 import AdminLayout from './pages/admin/AdminLayout'
 import Dashboard from './pages/admin/Dashboard'
 import Orders from './pages/admin/Orders'
@@ -61,7 +64,7 @@ function ScrollToTop() {
 }
 
 function AppContent() {
-  
+  const [policyModalOpen, setPolicyModalOpen] = useState(false)
   const location = useLocation()
   const isAdmin = location.pathname.startsWith('/admin')
 
@@ -78,6 +81,8 @@ function AppContent() {
         <Route path="/profilim" element={<PrivateRoute><Profile /></PrivateRoute>} />
         <Route path="/hakkimizda" element={<About />} />
         <Route path="/iletisim" element={<Contact />} />
+        <Route path="/kvkk" element={<Legal />} />
+        <Route path="/gizlilik-politikasi" element={<Legal />} />
         <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
           <Route index element={<Navigate to="dashboard" />} />
           <Route path="dashboard" element={<Dashboard />} />
@@ -91,6 +96,12 @@ function AppContent() {
         </Route>
       </Routes>
       {!isAdmin && <Footer />}
+      {!isAdmin && <CookieBanner onOpenPolicy={() => setPolicyModalOpen(true)} />}
+      <KvkkModal
+        isOpen={policyModalOpen}
+        onClose={() => setPolicyModalOpen(false)}
+        defaultTab="gizlilik"
+      />
     </>
   )
 }

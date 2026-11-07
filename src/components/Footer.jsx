@@ -1,134 +1,186 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Phone, MapPin, Mail, ExternalLink, ChevronRight, Shield, Truck, Package } from 'lucide-react'
+import { Phone, MapPin, Mail, ExternalLink, ChevronRight, Shield, Truck, Package, ShieldCheck } from 'lucide-react'
+import KvkkModal from './KvkkModal'
 
 export default function Footer() {
+  const [kvkkModal, setKvkkModal] = useState({ open: false, tab: 'kvkk' })
+
+  const openKvkk = (tab = 'kvkk') => setKvkkModal({ open: true, tab })
+
   return (
-    <footer className="bg-[#0B1528] text-slate-300">
+    <>
+      <footer className="bg-[#0B1528] text-slate-300">
 
-      {/* Üst bant */}
-      <div className="border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { icon: Shield, text: 'Orijinal Permolit Ürünleri' },
-            { icon: Truck, text: 'Erzurum\'a Hızlı Teslimat' },
-            { icon: Package, text: 'Profesyonel Teknik Destek' },
-          ].map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon size={15} className="text-blue-400" />
-              </div>
-              <span className="text-sm text-slate-300 font-medium">{text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Ana içerik */}
-      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
-
-        {/* Marka */}
-        <div>
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-              <img src="/logo.png" alt="ESF Yapı İnşaat - Permolit Boya Bayii logo" className="w-7 h-7 object-contain"
-                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
-              <span className="hidden text-blue-700 font-black text-base">E</span>
-            </div>
-            <div>
-              <p className="font-bold text-white text-sm leading-tight">ESF Yapı & İnşaat</p>
-              <p className="text-[10px] uppercase tracking-[0.15em] text-slate-400 font-medium">Boya & Sarf Malzemeleri</p>
-            </div>
-          </div>
-          <p className="text-sm leading-relaxed text-slate-400 mb-5">
-            Permolit Boya Doğu Anadolu Bölge Bayii olarak Erzurum ve çevresine profesyonel boya ve yapı malzemeleri sunuyoruz.
-          </p>
-          <a href="https://www.permolitboya.com.tr/" target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition font-semibold bg-blue-500/10 border border-blue-500/20 px-3 py-2 rounded-lg">
-            <ExternalLink size={11} /> permolitboya.com.tr
-          </a>
-        </div>
-
-        {/* Hızlı linkler */}
-        <div>
-          <h4 className="text-white font-semibold text-sm mb-5 flex items-center gap-2">
-            <span className="w-1 h-4 bg-blue-500 rounded-full inline-block" />
-            Hızlı Erişim
-          </h4>
-          <div className="flex flex-col gap-1.5">
+        {/* Üst bant */}
+        <div className="border-b border-white/5">
+          <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { label: 'Ana Sayfa', to: '/' },
-              { label: 'Tüm Ürünler', to: '/#tum-urunler' },
-              { label: 'Siparişlerim', to: '/siparislerim' },
-              { label: 'Profilim', to: '/profilim' },
-              { label: 'Hakkımızda', to: '/hakkimizda' },
-              { label: 'İletişim', to: '/iletisim' },
-            ].map(({ label, to }) => (
-              <Link key={to} to={to}
-                className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition py-1 group">
-                <ChevronRight size={12} className="text-blue-500/50 group-hover:text-blue-400 transition" />
-                {label}
-              </Link>
+              { icon: Shield, text: 'Orijinal Permolit Ürünleri' },
+              { icon: Truck, text: 'Erzurum\'a Hızlı Teslimat' },
+              { icon: Package, text: 'Profesyonel Teknik Destek' },
+            ].map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Icon size={15} className="text-blue-400" />
+                </div>
+                <span className="text-sm text-slate-300 font-medium">{text}</span>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* İletişim */}
-        <div>
-          <h4 className="text-white font-semibold text-sm mb-5 flex items-center gap-2">
-            <span className="w-1 h-4 bg-blue-500 rounded-full inline-block" />
-            İletişim
-          </h4>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <MapPin size={14} className="text-blue-400" />
+        {/* Ana içerik */}
+        <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+
+          {/* Marka */}
+          <div className="md:col-span-1">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                <img src="/logo.png" alt="ESF Yapı İnşaat - Permolit Boya Bayii logo" className="w-7 h-7 object-contain"
+                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
+                <span className="hidden text-blue-700 font-black text-base">E</span>
               </div>
               <div>
-                <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">Adres</p>
-                <p className="text-sm text-slate-300">
-                  Ilıca, Hoca Ahmet Yesevi Mahallesi, No: 19/B, 25700<br />
-                  Aziziye, Erzurum
-                </p>
+                <p className="font-bold text-white text-sm leading-tight">ESF Yapı & İnşaat</p>
+                <p className="text-[10px] uppercase tracking-[0.15em] text-slate-400 font-medium">Boya & Sarf Malzemeleri</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Phone size={14} className="text-blue-400" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">I. Telefon</p>
-                <a href="tel:+905323581792" className="text-sm text-slate-300 hover:text-white transition">+90 (532) 358 17 92</a>
-              </div>
+            <p className="text-sm leading-relaxed text-slate-400 mb-5">
+              Permolit Boya Doğu Anadolu Bölge Bayii olarak Erzurum ve çevresine profesyonel boya ve yapı malzemeleri sunuyoruz.
+            </p>
+            <a href="https://www.permolitboya.com.tr/" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition font-semibold bg-blue-500/10 border border-blue-500/20 px-3 py-2 rounded-lg">
+              <ExternalLink size={11} /> permolitboya.com.tr
+            </a>
+          </div>
+
+          {/* Hızlı linkler */}
+          <div>
+            <h4 className="text-white font-semibold text-sm mb-5 flex items-center gap-2">
+              <span className="w-1 h-4 bg-blue-500 rounded-full inline-block" />
+              Hızlı Erişim
+            </h4>
+            <div className="flex flex-col gap-1.5">
+              {[
+                { label: 'Ana Sayfa', to: '/' },
+                { label: 'Tüm Ürünler', to: '/#products' },
+                { label: 'Siparişlerim', to: '/siparislerim' },
+                { label: 'Profilim', to: '/profilim' },
+                { label: 'Hakkımızda', to: '/hakkimizda' },
+                { label: 'İletişim', to: '/iletisim' },
+              ].map(({ label, to }) => (
+                <Link key={to} to={to}
+                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition py-1 group">
+                  <ChevronRight size={12} className="text-blue-500/50 group-hover:text-blue-400 transition" />
+                  {label}
+                </Link>
+              ))}
             </div>
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Phone size={14} className="text-blue-400" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">II. Telefon</p>
-                <a href="tel:+905330539535" className="text-sm text-slate-300 hover:text-white transition">+90 (533) 053 95 35</a>
-              </div>
+          </div>
+
+          {/* Yasal & Güvenlik */}
+          <div>
+            <h4 className="text-white font-semibold text-sm mb-5 flex items-center gap-2">
+              <span className="w-1 h-4 bg-blue-500 rounded-full inline-block" />
+              Yasal & Güvenlik
+            </h4>
+            <div className="flex flex-col gap-1.5">
+              <button
+                onClick={() => openKvkk('kvkk')}
+                className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition py-1 text-left group"
+              >
+                <ChevronRight size={12} className="text-blue-500/50 group-hover:text-blue-400 transition" />
+                KVKK Aydınlatma Metni
+              </button>
+              <button
+                onClick={() => openKvkk('gizlilik')}
+                className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition py-1 text-left group"
+              >
+                <ChevronRight size={12} className="text-blue-500/50 group-hover:text-blue-400 transition" />
+                Gizlilik ve Çerez Politikası
+              </button>
+              <Link
+                to="/kvkk"
+                className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition py-1"
+              >
+                <ShieldCheck size={12} className="text-green-500/70" />
+                6698 Sayılı KVKK Uyumlu
+              </Link>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Mail size={14} className="text-blue-400" />
+          </div>
+
+          {/* İletişim */}
+          <div>
+            <h4 className="text-white font-semibold text-sm mb-5 flex items-center gap-2">
+              <span className="w-1 h-4 bg-blue-500 rounded-full inline-block" />
+              İletişim
+            </h4>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <MapPin size={14} className="text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">Adres</p>
+                  <p className="text-sm text-slate-300">
+                    Ilıca, Hoca Ahmet Yesevi Mahallesi, No: 19/B, 25700<br />
+                    Aziziye, Erzurum
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">E-posta</p>
-                <a href="mailto:esfyapi@hotmail.com" className="text-sm text-slate-300 hover:text-white transition">esfyapi@hotmail.com</a>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Phone size={14} className="text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">I. Telefon</p>
+                  <a href="tel:+905323581792" className="text-sm text-slate-300 hover:text-white transition">+90 (532) 358 17 92</a>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Phone size={14} className="text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">II. Telefon</p>
+                  <a href="tel:+905330539535" className="text-sm text-slate-300 hover:text-white transition">+90 (533) 053 95 35</a>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Mail size={14} className="text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 mb-0.5 font-medium uppercase tracking-wide">E-posta</p>
+                  <a href="mailto:esfyapi@hotmail.com" className="text-sm text-slate-300 hover:text-white transition">esfyapi@hotmail.com</a>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Alt çizgi */}
-      <div className="border-t border-white/5 py-5 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-slate-500">© {new Date().getFullYear()} ESF Yapı İnşaat. Tüm hakları saklıdır.</p>
-          <p className="text-xs text-slate-600 font-medium">Permolit Boya Yetkili Bayii · Erzurum</p>
+        {/* Alt çizgi */}
+        <div className="border-t border-white/5 py-5 px-6">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <p className="text-xs text-slate-500">© {new Date().getFullYear()} ESF Yapı İnşaat. Tüm hakları saklıdır.</p>
+            <div className="flex items-center gap-4 text-xs text-slate-400">
+              <button onClick={() => openKvkk('kvkk')} className="hover:text-white transition">KVKK Aydınlatma</button>
+              <span>·</span>
+              <button onClick={() => openKvkk('gizlilik')} className="hover:text-white transition">Gizlilik ve Çerezler</button>
+              <span>·</span>
+              <span className="text-slate-500">Permolit Yetkili Bayii</span>
+            </div>
+          </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+
+      {/* KVKK & Gizlilik Modalı */}
+      <KvkkModal
+        isOpen={kvkkModal.open}
+        onClose={() => setKvkkModal({ ...kvkkModal, open: false })}
+        defaultTab={kvkkModal.tab}
+      />
+    </>
   )
 }
